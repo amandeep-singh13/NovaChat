@@ -1,11 +1,16 @@
+// App.js
 import React from 'react';
+import { Routes, Route } from 'react-router-dom'; 
+import ChatPage from './pages/Chatpage';
+import HomePage from './pages/HomePage';
 
 const App = () => {
   return (
-    <div className="text-3xl font-bold underline">
-      Hello world!
-    </div>
-  )
+    <Routes> 
+      <Route exact path="/" element={<HomePage />} /> 
+      <Route exact path="/chats" element={<ChatPage />} />
+    </Routes>
+  );
 }
 
-export default App
+export default App;
