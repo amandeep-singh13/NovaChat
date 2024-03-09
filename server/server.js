@@ -4,6 +4,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const dotenv = require('dotenv');
 const colors = require('colors');
+const { chats } = require("./data/data");
 
 //confid dot env file
 dotenv.config();
@@ -16,10 +17,18 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(cors());
 
+
+
 //routes
 app.get('/', (req,res) => {
-    res.send("<h1>Hello from server</h1>");
+    res.send("API is running");
 })
+
+app.get('/api/chat', (req,res) => {
+    res.send(chats);
+})
+
+
 
 //port
 const PORT = 8081 || process.env.PORT
