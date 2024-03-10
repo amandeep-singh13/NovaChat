@@ -1,11 +1,27 @@
 const mongoose = require('mongoose');
 
-const userSchema = mongoose.Schema(
+const userSchema = new mongoose.Schema(
     {
-        name: {type: String ,required: true},
-        email: {type: String,required: true},
-        password: {type: String,required: true},
-        pic: {
+        username: {
+            type: String ,
+            required: [true, "Username is required"],
+            unique: [true, "Username Exist"],
+        },
+        email: {
+            type: String,
+            required: [true, "Please provide a unique email"],
+            unique: true,
+        },
+        password: {
+            type: String,
+            required: true,
+            unique: false,
+        },
+        firstName : {type: String},
+        lastName : {type: String},
+        address : {type: String},
+        mobile : {type: Number},
+        profile: {
             type: String,
             required: true,
             default:
@@ -17,6 +33,6 @@ const userSchema = mongoose.Schema(
         timestamps: true
     }
 );
-const User = mongoose.model("User",userSchema);
+const userModel = mongoose.model.users || mongoose.model("User",userSchema);
 
-module.exports = User;
+module.exports = userModel;
