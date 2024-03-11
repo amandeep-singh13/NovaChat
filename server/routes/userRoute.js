@@ -23,13 +23,13 @@ const {
 
 
 /**POST Methods */
-router.route('/register').post(controller.registerController); //register user
+router.route('/register').post(registerController); //register user
 router.route('/regsiterMail').post(); //send the email
 router.route('/authenticate').post((req,res) => res.end()); //authenticate user
-router.route('/login').post(controller.loginController); //login to app
+router.route('/login').post(loginController); //login to app
 
 /**GET Methods */
-router.route('/user/:username').get(controller.getUser); //get user with username
+router.route('/:username').get(controller.getUser); //get user with username
 router.route('/generateOTP').get(controller.generateOTP); //genrate random OTP
 router.route('/vertifyOTP').get(controller.verifyOTP); //verify generated OTP
 router.route('/createResetSession').get(controller.createResetSession); //reset all the variables
