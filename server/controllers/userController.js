@@ -90,30 +90,46 @@ const registerController=asyncHandler(async(req,res)=>{
     }
 });
 
+const loginController=asyncHandler(async(req,res)=>{
+    const {email,password}=req.body;
+    const user=await userModel.findOne({email});
+    if(user && (await user.matchPassword(password))){
+        res.json({
+            password:user.password,
+            username:user.username,
+            email:user.email,
+            profile:user.profile,
+            token:generateToken(user.password),
+        });
+    }
+    else{
+        res.status(401);
+        throw new Error("Invalid email or password");
+    }
+})
 
 
 
 
+// async function loginController(req, res) {
+//     res.json('login route');
+// }
 
-async function loginController(req, res) {
-    res.json('login route');
-}
+// /** GET: http://localhost:8080/api/user/example123 */
+// async function getUser(req, res) {
+//     res.json('getUser route');
+// }
 
-/** GET: http://localhost:8080/api/user/example123 */
-async function getUser(req, res) {
-    res.json('getUser route');
-}
-
-/** PUT: http://localhost:8080/api/updateuser 
- * @param: {
-  "header" : "<token>"
-}
-body: {
-    firstName: '',
-    address : '',
-    profile : ''
-}
-*/
+// /** PUT: http://localhost:8080/api/updateuser 
+//  * @param: {
+//   "header" : "<token>"
+// }
+// body: {
+//     firstName: '',
+//     address : '',
+//     profile : ''
+// }
+// */
 async function updateUser(req, res) {
     res.json('updateUser route');
 }
@@ -139,6 +155,10 @@ async function createResetSession(req, res) {
 async function resetPassword(req, res) {
     // Your implementation here
 }
+async function getUser(req,res){
+
+}
+
 
 module.exports = {
     registerController,

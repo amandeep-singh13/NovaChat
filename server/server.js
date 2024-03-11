@@ -7,7 +7,7 @@ const colors = require('colors');
 const { chats } = require('./data/data');
 const connectDb = require('./config/connectDb');
 const router = require('./routes/userRoute');
-
+const {notFound,errorHandler}=require("./middlewares/errorMiddleware");
 //confid dot env file
 dotenv.config();
 
@@ -37,7 +37,8 @@ app.get('/api/chat', (req, res) => {
     res.send(chats);
 })
 
-
+app.use(notFound);
+app.use(errorHandler);
 
 /**connect db only when we have valid connection*/
 connectDb().then(() => {
