@@ -6,7 +6,9 @@ const dotenv = require('dotenv');
 const colors = require('colors');
 const { chats } = require('./data/data');
 const connectDb = require('./config/connectDb');
+const messageRoutes = require("./routes/messageRoutes");
 const router = require('./routes/userRoute');
+
 const {notFound,errorHandler}=require("./middlewares/errorMiddleware");
 //confid dot env file
 dotenv.config();
@@ -35,6 +37,8 @@ app.use('/api/user',router);
 app.get('/api/chat', (req, res) => {
     res.send(chats);
 })
+
+app.use("/api/message", messageRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
