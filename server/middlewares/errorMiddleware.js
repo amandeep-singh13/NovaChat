@@ -1,5 +1,5 @@
 const notFound=(req,res,next)=>{
-    const error=new Error(`Not Found-${req.originalURL}`);
+    const error=new Error(`API Not Found-${req.originalURL}`);
     res.status(404);
     next(error);
 }

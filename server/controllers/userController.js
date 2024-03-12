@@ -1,7 +1,7 @@
 const userModel = require('../models/userModel');
-const asyncHandler=require("express-async-handler");
-const generateToken=require('../config/generateToken');
-/** POST: http://localhost:8080/api/register 
+const asyncHandler = require("express-async-handler");
+const generateToken = require('../config/generateToken');
+/** POST: http://localhost:8080/api/user/register 
  * @param : {
   "username" : "example123",
   "password" : "admin123",
@@ -58,62 +58,75 @@ const generateToken=require('../config/generateToken');
   "password" : "admin123"
 }
 */
-const registerController=asyncHandler(async(req,res)=>{
-    const {username,email,password,profile}=req.body;
-    if(!username|| !email || !password || !profile){
+const registerController = asyncHandler(async (req, res) => {
+    const { username, email, password, profile } = req.body;
+    if (!username || !email || !password) {
         res.status(400);
+        console.log("no input recieved");
         throw new Error("Please enter all the feilds");
     }
-    const userExists=await userModel.findOne({email});
-    if(userExists){
+    const usernameExists = await userModel.findOne({ username });
+    const emailExists = await userModel.findOne({ email });
+    if (usernameExists) {
         res.status(400);
-        throw new Error("User already exists");
+        throw new Error("Username already exists");
     }
-    const user=await userModel.create({
+    if (emailExists) {
+        res.status(400);
+        throw new Error("Email already exists");
+    }
+    const user = await userModel.create({
         username,
         email,
         password,
         profile,
     });
-    if(user){
+    
+    
+    if (user) {
+        // user.save()
+        // .then(result => res.status(201).send({ msg: "User Register Successfully" }))
+        // .catch(error => res.status(500).send({ error }))
         res.status(201).json({
-            password:user.password,
-            username:user.username,
-            email:user.email,
-            profile:user.profile,
-            token:generateToken(user.password),
+            password: user.password,
+            username: user.username,
+            email: user.email,
+            profile: user.profile,
+            token: generateToken(user.password),
         })
     }
-    else{
+    else {
         res.status(400);
         throw new Error("failed to create the user");
     }
 });
 
-const loginController=asyncHandler(async(req,res)=>{
-    const {email,password}=req.body;
-    const user=await userModel.findOne({email});
-    if(user && (await user.matchPassword(password))){
+const loginController = asyncHandler(async (req, res) => {
+    const { username, password } = req.body;
+    const user = await userModel.findOne({ username });
+    if (!user) {
+        res.status(401);
+        throw new Error("Username not found");
+    }
+    else if (user && (await user.matchPassword(password))) {
         res.json({
-            password:user.password,
-            username:user.username,
-            email:user.email,
-            profile:user.profile,
-            token:generateToken(user.password),
+            password: user.password,
+            username: user.username,
+            email: user.email,
+            profile: user.profile,
+            token: generateToken(user.password),
         });
     }
-    else{
+    else {
         res.status(401);
-        throw new Error("Invalid email or password");
+        throw new Error("Invalid password");
     }
 })
 
 
 
 
-// async function loginController(req, res) {
-//     res.json('login route');
-// }
+
 
 // /** GET: http://localhost:8080/api/user/example123 */
 // async function getUser(req, res) {
@@ -155,7 +168,7 @@ async function createResetSession(req, res) {
 async function resetPassword(req, res) {
     // Your implementation here
 }
-async function getUser(req,res){
+async function getUser(req, res) {
 
 }
 

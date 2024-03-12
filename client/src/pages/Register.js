@@ -1,17 +1,22 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import avatar from '../assets/profile.png';
-import { Toaster } from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 import { useFormik } from 'formik';
 import { registerValidate } from '../helper/validate';
+import { registerUser } from '../helper/helper';
 import convertToBase64 from '../helper/convert';
-
+import axios from 'axios';
 import styles from '../css/Username.module.css';
 
 
-
+axios.defaults.baseURL = 'http://localhost:8080';
 const Register = () => {
+  const navigate = useNavigate();
+
   const [file, setFile] = useState();
+  const [loading, setLoading] = useState(false);
+
   const formik = useFormik({
     initialValues: {
       email: 'demo123@gmail.com',
@@ -21,9 +26,24 @@ const Register = () => {
     validate: registerValidate,
     validateOnBlur: false,
     validateOnChange: false,
-    onSubmit: async values => {
-      values = await Object.assign(values, {profile : file || ''})
+    onSubmit: async (values) => {
+      values = await Object.assign(values, { profile: file || '' });
       console.log(values);
+      try {
+        console.log('Form values:', values);
+        await axios.post('/api/user/register', values);
+        navigate('/login');
+      } catch (error) {
+        console.error('Registration error:', error);
+      }
+      // let registerPromise = registerUser(values);
+      // toast.promise(registerPromise, {
+      //   loading: 'Creating...',
+      //   success : <b>Register Successfully...!</b>,
+      //   error : <b>Could not Register.</b>
+      // });
+
+      // registerPromise.then(function(){ navigate('/')});
     }
   })
 
@@ -31,6 +51,9 @@ const Register = () => {
   const onUpload = async e => {
     const base64 = await convertToBase64(e.target.files[0]);
     setFile(base64);
+    console.log('File base64:', base64);
+    console.log('Updated values:', { ...formik.values, profile: base64 });
+
   }
   return (
     <div className="container mx-auto">
