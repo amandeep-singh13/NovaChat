@@ -1,4 +1,5 @@
 const express = require('express');
+const { protect } = require("../middlewares/authMiddleware");
 const
  {
        sendMessage,
@@ -7,11 +8,11 @@ const
 const router = express.Router();
 
 //router.route('/').post(protect, sendMessage)//we will check when middleware is available 
-router.route('/').post(sendMessage);
+router.route('/messages').post(protect,sendMessage);
 
 //router.route('/:chatId').post(protect, allMessages);
 
-router.route('/:chatId').post(allMessages);
+router.route('/:chatId').post(protect,allMessages);
 
 module.exports=router;
 
