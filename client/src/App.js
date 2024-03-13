@@ -14,6 +14,10 @@ import Recovery from './components/Recovery';
 import Reset from './components/Reset';
 import PageNotFound from './components/PageNotFound';
 
+/** auth middleware */
+import { AuthorizeUser, ProtectRoute } from './middlewares/auth';
+
+
 /** root routes */
 const router = createBrowserRouter([
   {
@@ -26,7 +30,9 @@ const router = createBrowserRouter([
   },
   {
     path : '/chats',
-    element : <ChatPage/>
+    element : <AuthorizeUser>
+      <ChatPage/>
+    </AuthorizeUser>
   },
   {
     path : '/login',
@@ -61,7 +67,7 @@ const router = createBrowserRouter([
 const App = () => {
   return (
     <main> 
-      <RouterProvider router = {router}></RouterProvider>
+      <RouterProvider router = {router}>  </RouterProvider>
     </main>
   );
 }

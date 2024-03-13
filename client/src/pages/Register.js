@@ -32,9 +32,17 @@ const Register = () => {
       try {
         console.log('Form values:', values);
         await axios.post('/api/user/register', values);
+        toast.success('Register Successfully', {
+          duration: 4000,
+          position: 'top-center',
+        })
         navigate('/login');
       } catch (error) {
         console.error('Registration error:', error);
+        toast.error('Username Exists or Invalid Data', {
+          duration: 4000,
+          position: 'top-center',
+        });
       }
       // let registerPromise = registerUser(values);
       // toast.promise(registerPromise, {

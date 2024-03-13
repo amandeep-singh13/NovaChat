@@ -58,6 +58,7 @@ const generateToken = require('../config/generateToken');
   "password" : "admin123"
 }
 */
+//register api handler
 const registerController = asyncHandler(async (req, res) => {
     const { username, email, password, profile } = req.body;
     if (!username || !email || !password) {
@@ -88,11 +89,12 @@ const registerController = asyncHandler(async (req, res) => {
         // .then(result => res.status(201).send({ msg: "User Register Successfully" }))
         // .catch(error => res.status(500).send({ error }))
         res.status(201).json({
+            _id: user._id,
             password: user.password,
             username: user.username,
             email: user.email,
             profile: user.profile,
-            token: generateToken(user.password),
+            token: generateToken(user._id),
         })
     }
     else {
@@ -101,6 +103,25 @@ const registerController = asyncHandler(async (req, res) => {
     }
 });
 
+/** middleware for verify user */
+const verifyUser = asyncHandler(async (req, res, next) => {
+    try {
+        const { username } = req.method === "GET" ? req.query : req.body;
+
+        // Check the user existence
+        let exist = await userModel.findOne({ username });
+        if (!exist) {
+            return res.status(404).send({ error: "Can't find User!" });
+        }
+        next();
+    } catch (error) {
+        return res.status(404).send({ error: "Authentication Error" });
+    }
+});
+
+
+
+//login api handling
 const loginController = asyncHandler(async (req, res) => {
     const { username, password } = req.body;
     const user = await userModel.findOne({ username });
@@ -110,18 +131,35 @@ const loginController = asyncHandler(async (req, res) => {
     }
     else if (user && (await user.matchPassword(password))) {
         res.json({
+            _id: user._id,
             password: user.password,
             username: user.username,
             email: user.email,
             profile: user.profile,
-            token: generateToken(user.password),
+            token: generateToken(user._id),
         });
     }
     else {
         res.status(401);
         throw new Error("Invalid password");
     }
-})
+});
+
+//user search api/user/register?search=aradhya
+const allUsers=asyncHandler(async(req,res)=>{
+     const keyword = req.query.search 
+     ? {
+        $or: [
+            { username: { $regex: req.query.search, $options: "i"} },
+            { email: {$regex: req.query.search, $options: "i"} },
+        ],
+     }
+     : {};
+
+     const users = await userModel.find(keyword).find({ _id: { $ne: req.user._id } });
+    res.send(users);
+});
+
 
 
 
@@ -176,7 +214,9 @@ async function getUser(req, res) {
 module.exports = {
     registerController,
     loginController,
+    allUsers,
     getUser,
+    verifyUser,
     updateUser,
     generateOTP,
     verifyOTP,
