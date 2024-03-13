@@ -1,5 +1,5 @@
 const asyncHandler = require("express-async-handler");
-const Chat = require("../models/chatModel");
+const chat = require("../models/chatModel");
 const userModel = require("../models/userModel");
 
 //accessChat api handler(one on one chat between user logged in and userid provided)
@@ -10,7 +10,7 @@ const accessChat = asyncHandler(async (req,res)=>{
         return res.sendStatus(400);
     }
     //if chat exits with user
-    var isChat = await Chat.find({
+    var isChat = await chat.find({
         isGroupChat: false,
         $and: [
             { users: { $elemMatch: { $eq: req.user._id} } },
@@ -33,8 +33,8 @@ const accessChat = asyncHandler(async (req,res)=>{
             users: [req.user._id,userId],
         };
         try {
-            const createdChat = await Chat.create(chatData);
-            const FullChat = await Chat.findOne({_id: createdChat._id}).populate(
+            const createdChat = await chat.create(chatData);
+            const FullChat = await chat.findOne({_id: createdChat._id}).populate(
                 "users", 
                 "-password"
             );
@@ -49,7 +49,7 @@ const accessChat = asyncHandler(async (req,res)=>{
 //fetchChats api handler(fetch chat for that particular user is part of )
 const fetchChats = asyncHandler(async (req,res)=>{
     try {
-        Chat.find({users: {$elemMatch: {$eq: req.user._id} } }).populate("users","-password").populate("groupAdmin","-password").populate("latestMessage").sort({updatedAt: -1}).then(async (results)=> {
+        chat.find({users: {$elemMatch: {$eq: req.user._id} } }).populate("users","-password").populate("groupAdmin","-password").populate("latestMessage").sort({updatedAt: -1}).then(async (results)=> {
             results = await userModel.populate(results,{
                 path: "latestMessage.sender",
                 select: "username profile email",
@@ -65,7 +65,7 @@ const fetchChats = asyncHandler(async (req,res)=>{
 //groupchat api handler
 
 const  createGroupChat = asyncHandler(async (req,res)=> {
-   if(!req.body.users || !req.body.username){
+   if(!req.body.users || !req.body.name){
     return res.status(400).send({message: "please Fill all the fields"});
    }
    var users = JSON.parse(req.body.users);
@@ -74,14 +74,14 @@ const  createGroupChat = asyncHandler(async (req,res)=> {
    }
     users.push(req.user);
     try {
-        const groupChat = await Chat.create({
-            chatName : req.body.username,
+        const groupChat = await chat.create({
+            chatName : req.body.name,
             users: users,
             isGroupChat: true,
             groupAdmin: req.user,
 
         });
-        const fullGroupChat = await Chat.findOne({_id: groupChat._id})
+        const fullGroupChat = await chat.findOne({_id: groupChat._id})
         .populate("users","-password")
         .populate("groupAdmin","-password");
         res.status(200).json(fullGroupChat);
@@ -95,10 +95,10 @@ const  createGroupChat = asyncHandler(async (req,res)=> {
 //rename api handler
 const renameGroup = asyncHandler(async (req,res)=> {
     const {chatId,chatName} = req.body;
-    const updatedChat = await Chat.findByIdAndUpdate(
+    const updatedChat = await chat.findByIdAndUpdate(
         chatId,
         {
-           chatName,
+           chatName: chatName,
         },
         {
             new: true,
@@ -121,7 +121,7 @@ const removeFromGroup = asyncHandler(async (req, res) => {
   
     // check if the requester is admin
   
-    const removed = await Chat.findByIdAndUpdate(
+    const removed = await chat.findByIdAndUpdate(
       chatId,
       {
         $pull: { users: userId },
@@ -144,12 +144,12 @@ const removeFromGroup = asyncHandler(async (req, res) => {
   // @desc    Add user to Group / Leave
   // @route   PUT /api/chat/groupadd
   // @access  Protected
-  const addToGroup = asyncHandler(async (req, res) => {
+ const addToGroup = asyncHandler(async (req, res) => {
     const { chatId, userId } = req.body;
   
     // check if the requester is admin
   
-    const added = await Chat.findByIdAndUpdate(
+    const added = await chat.findByIdAndUpdate(
       chatId,
       {
         $push: { users: userId },

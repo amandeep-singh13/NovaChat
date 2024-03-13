@@ -1,6 +1,7 @@
 const asyncHandler = require("express-async-handler");
-const Message = require("../models/messageModel");
+const Message = require("../models/MessageModel");
 const userModel = require("../models/userModel");
+const Chat = require("../models/chatModel");
 
 const sendMessage=asyncHandler(async (req, res)=>{
     const { content, chatId} = req.body;
@@ -21,7 +22,7 @@ const sendMessage=asyncHandler(async (req, res)=>{
    
         message = await message.populate("sender", "username profile");
         message = await message.populate("chat");
-        message = await User.populate(message, {
+        message = await userModel.populate(message, {
             path:'chat.users',
             select: "username profile email",
 

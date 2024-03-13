@@ -35,7 +35,7 @@ app.get('/', (req, res) => {
 /**api routes */
 app.use('/api/user',router);
 
-app.get('/api/chat',chatRoutes);
+app.use('/api/chat',chatRoutes);
 
 app.use("/api/message", messageRoutes);
 
