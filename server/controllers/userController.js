@@ -136,7 +136,7 @@ const loginController = asyncHandler(async (req, res) => {
             username: user.username,
             email: user.email,
             profile: user.profile,
-            token: generateToken(user.password),
+            token: generateToken(user._id),
         });
     }
     else {
