@@ -104,20 +104,21 @@ const registerController = asyncHandler(async (req, res) => {
 });
 
 /** middleware for verify user */
-export async function verifyUser(req, res, next){
+const verifyUser = asyncHandler(async (req, res, next) => {
     try {
-        
-        const { username } = req.method == "GET" ? req.query : req.body;
+        const { username } = req.method === "GET" ? req.query : req.body;
 
-        // check the user existance
-        let exist = await UserModel.findOne({ username });
-        if(!exist) return res.status(404).send({ error : "Can't find User!"});
+        // Check the user existence
+        let exist = await userModel.findOne({ username });
+        if (!exist) {
+            return res.status(404).send({ error: "Can't find User!" });
+        }
         next();
-
     } catch (error) {
-        return res.status(404).send({ error: "Authentication Error"});
+        return res.status(404).send({ error: "Authentication Error" });
     }
-}
+});
+
 
 
 //login api handling
@@ -155,7 +156,7 @@ const allUsers=asyncHandler(async(req,res)=>{
      }
      : {};
 
-     const users = await userModel.find({ ...keyword, _id: { $ne: req.user._id } });
+     const users = await userModel.find(keyword).find({ _id: { $ne: req.user._id } });
     res.send(users);
 });
 

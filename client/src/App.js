@@ -15,7 +15,7 @@ import Reset from './components/Reset';
 import PageNotFound from './components/PageNotFound';
 
 /** auth middleware */
-import { AuthorizeUser, ProtectRoute } from './middleware/auth';
+import { AuthorizeUser, ProtectRoute } from './middlewares/auth';
 
 
 /** root routes */
@@ -30,7 +30,9 @@ const router = createBrowserRouter([
   },
   {
     path : '/chats',
-    element : <ChatPage/>
+    element : <AuthorizeUser>
+      <ChatPage/>
+    </AuthorizeUser>
   },
   {
     path : '/login',

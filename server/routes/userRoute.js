@@ -14,6 +14,7 @@ const {
   loginController,
   allUsers,
   getUser,
+  verifyUser,
   updateUser,
   generateOTP,
   verifyOTP,
@@ -28,7 +29,7 @@ const {
 router.route('/register').post(registerController).get(protect,allUsers); //register user
 router.route('/regsiterMail').post(); //send the email
 router.route('/authenticate').post((req,res) => res.end()); //authenticate user
-router.route('/login').post(loginController); //login to app
+router.route('/login').post( verifyUser, loginController); //login to app
 
 /**GET Methods */
 router.route('/:username').get(controller.getUser); //get user with username
