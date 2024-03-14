@@ -11,7 +11,9 @@
     font-style: normal;
 }
 
-body{
-    background: #dcdce6;
-    background-image: url(./assets/Background.png);
+body {
+    background-color: rgba(220, 220, 230, 0.5); /* Light opacity */
+    background-image: url(./assets/chatbg2.webp);
+    background-size: cover; /* Ensures the image covers the entire screen */
+    background-repeat: no-repeat; /* Prevents the image from repeating */
 }
