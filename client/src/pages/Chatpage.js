@@ -2,7 +2,6 @@ import SideDrawer from "../components/miscellaneous/SideDrawer";
 import ChatBox from "../components/ChatBox";
 import MyChats from "../components/MyChats";
 const ChatPage = () => {
-    // const {user} = ChatState();
     return (
         <div style={{width:"100%"}}>
             <SideDrawer/>
