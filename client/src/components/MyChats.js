@@ -8,7 +8,6 @@ import { Button } from "@chakra-ui/react";
 import {getSender} from "../config/ChatLogics"
 import { ChatState } from "../Context/ChatProvider";
 const MyChats = ({ fetchAgain }) => {
-
   const [loggedUser,setLoggedUser]=useState();
   const {selectedChat, setSelectedChat, user, chats,    setChats} = ChatState();
   const toast=useToast();
