@@ -16,7 +16,6 @@ import {
 
 const ProfileModal = ({ user, children }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-
   return (
     <>
       {children ? (
@@ -24,18 +23,19 @@ const ProfileModal = ({ user, children }) => {
       ) : (
         <IconButton d={{ base: "flex" }} icon={<ViewIcon />} onClick={onOpen} />
       )}
-      <Modal size="lg" onClose={onClose} isOpen={isOpen} isCentered>
+      <Modal className="ml-20"size="lg" onClose={onClose} isOpen={isOpen} isCentered>
         <ModalOverlay />
-        <ModalContent h="410px">
+        <ModalContent className="rounded-xl 
+         px-5 bg-pink-200"width="30%"  h="290px" flexDir={"column"}>
           <ModalHeader
-            fontSize="40px"
+            className="font-semibold"
+            fontSize="20px"
             fontFamily="Work sans"
             d="flex"
             justifyContent="center"
           >
             {user.username}
           </ModalHeader>
-          <ModalCloseButton />
           <ModalBody
             d="flex"
             flexDir="column"
@@ -45,10 +45,10 @@ const ProfileModal = ({ user, children }) => {
             <Image
               borderRadius="full"
               boxSize="150px"
-              src={user.profile}
+              src={user.profile ? user.profile:".../assets/profile.png"}
               alt={user.username}
             />
-            <Text
+            <Text className="font-semibold"
               fontSize={{ base: "28px", md: "30px" }}
               fontFamily="Work sans"
             >
@@ -56,7 +56,7 @@ const ProfileModal = ({ user, children }) => {
             </Text>
           </ModalBody>
           <ModalFooter>
-            <Button onClick={onClose}>Close</Button>
+            <Button className="bg-blue-600 px-2 py-2 rounded-lg"onClick={onClose}>Close</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
