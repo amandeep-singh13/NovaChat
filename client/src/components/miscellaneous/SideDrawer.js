@@ -169,22 +169,21 @@ const SideDrawer = () => {
         </Menu>
       </div>
     </Box>
-
-
-    <Drawer placement="left" onClose={onClose} isOpen={isOpen}>
+    <Drawer placement="left" width="30%" onClose={onClose} isOpen={isOpen}>
       <DrawerOverlay />
-      <DrawerContent>
-        <DrawerHeader borderBottomWidth="1px">Search Users</DrawerHeader>
-        <DrawerBody>
-          <Box d="flex" pb={2}>
+      <DrawerContent width="30%">
+        <DrawerHeader borderBottomWidth="1px" width="20%">Search User</DrawerHeader>
+        <DrawerBody width="40%">
+          <Box d="flex" pb={30}>
             <Input
               placeholder="Search by name or email"
               mr={2}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            <Button onClick={handleSearch}>Go</Button>
+            <Button colorScheme="blue" onClick={handleSearch}>Go</Button>
           </Box>
+          <Box width="40%" h="100vh">
           {loading ? (
             <ChatLoading />
           ) : (
@@ -197,6 +196,7 @@ const SideDrawer = () => {
             ))
           )}
           {loadingChat && <Spinner ml="auto" d="flex" />}
+          </Box>
         </DrawerBody>
       </DrawerContent>
     </Drawer>
