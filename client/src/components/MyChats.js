@@ -6,13 +6,12 @@ import { useEffect, useState } from "react";
 import ChatLoading from "./ChatLoading";
 import { Button } from "@chakra-ui/react";
 import {getSender} from "../config/ChatLogics"
-import { useChatState } from "../Context/ChatProvider";
-const MyChats = () => {
+import { ChatState } from "../Context/ChatProvider";
+const MyChats = ({ fetchAgain }) => {
 
   const [loggedUser,setLoggedUser]=useState();
-  const {selectedChat,setSelectedChat,chats,setChats}=useChatState();
+  const {selectedChat, setSelectedChat, user, chats,    setChats} = ChatState();
   const toast=useToast();
-   const user=localStorage.getItem("userInfo");
   const fetchChats=async()=>{
     try{
       const config={
@@ -37,7 +36,7 @@ const MyChats = () => {
   useEffect(()=>{
     setLoggedUser(JSON.parse(localStorage.getItem("userInfo")));
     fetchChats();
-  },[])
+  },[fetchAgain])
   return (
     <Box 
     d={{base:selectedChat?"none": "flex",md:"flex"}}

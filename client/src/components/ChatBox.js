@@ -1,9 +1,14 @@
 import React from 'react'
 
-function ChatBox() {
+
+const ChatBox = ({ fetchAgain, setFetchAgain }) => {
   return (
-    <div>ChatBox</div>
+    <div>
+      ChatBOX
+    </div>
   )
 }
+
+
 
 export default ChatBox
