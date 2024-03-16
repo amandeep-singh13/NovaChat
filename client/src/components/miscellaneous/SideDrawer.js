@@ -35,6 +35,7 @@ const SideDrawer = () => {
   const [loading, setLoading] = useState(false);
   const [loadingChat, setLoadingChat] = useState();
   const navigate = useNavigate();
+
   const {
     setSelectedChat,
     user,
@@ -153,7 +154,7 @@ const SideDrawer = () => {
               size="sm"
               cursor="pointer"
               name={user.username}
-              src={user.profile ? user.profile:"/assets/profile.png"}
+              src={user.profile}
             />
           </MenuButton>
           
@@ -172,7 +173,7 @@ const SideDrawer = () => {
       <DrawerOverlay />
       <DrawerContent width="30%">
         <DrawerHeader borderBottomWidth="1px" width="20%">Search User</DrawerHeader>
-        <DrawerBody width="30%">
+        <DrawerBody width="40%">
           <Box d="flex" pb={30}>
             <Input
               placeholder="Search by name or email"
@@ -182,7 +183,7 @@ const SideDrawer = () => {
             />
             <Button colorScheme="blue" onClick={handleSearch}>Go</Button>
           </Box>
-          <Box width="100%" h="100vh" bg="#A9A9A9">
+          <Box width="40%" h="100vh">
           {loading ? (
             <ChatLoading />
           ) : (
