@@ -1,14 +1,29 @@
-import React from 'react'
+import React from "react";
+import { Box,Text } from "@chakra-ui/layout";
+//import "./styles.css";
+//import SingleChat from "./SingleChat";
+import { ChatState } from "../Context/ChatProvider";
+import SingleChat from "./SingleChat";
 
 
-const ChatBox = ({ fetchAgain, setFetchAgain }) => {
+
+const Chatbox = ({ fetchAgain, setFetchAgain }) => {
+  const { selectedChat } = ChatState();
+
   return (
-    <div>
-      hello world
-    </div>
-  )
-}
+    <Box className="bg-white rounded-xl" w="69%" h="100vh"
+      d={{ base: selectedChat ? "flex" : "none", md: "flex" }}
+      alignItems="center"
+      flexDir="column"
+      p={5}
+      // bg="white"
+      // w={{ base: "100%", md: "68%" }}
+      borderRadius="lg"
+      borderWidth="1px"
+    > SingleChat
+      <SingleChat fetchAgain={fetchAgain} setFetchAgain={setFetchAgain} />
+    </Box>
+  );
+};
 
-
-
-export default ChatBox
+export default Chatbox;
