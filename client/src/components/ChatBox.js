@@ -11,7 +11,7 @@ const Chatbox = ({ fetchAgain, setFetchAgain }) => {
   const { selectedChat } = ChatState();
 
   return (
-    <Box className="bg-white rounded-xl" w="69%" h="100vh"
+    <Box className="bg-white rounded-xl " w="69%" h="100vh" 
       d={{ base: selectedChat ? "flex" : "none", md: "flex" }}
       alignItems="center"
       flexDir="column"

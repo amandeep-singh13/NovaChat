@@ -62,7 +62,7 @@ const MyChats = ({ fetchAgain }) => {
       <GroupChatModal>
         <Button className="flex-row-reverse" bg="#E8E8E8"
           fontSize={{ base: "40px", md: "30px" }}
-          pr={10}
+          pr={4}
           pl={4}
           rightIcon={<AddIcon />}
 
