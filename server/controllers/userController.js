@@ -1,6 +1,7 @@
 const userModel = require('../models/userModel');
 const asyncHandler = require("express-async-handler");
 const generateToken = require('../config/generateToken');
+const otpGenerator = require('otp-generator');
 /** POST: http://localhost:8080/api/user/register 
  * @param : {
   "username" : "example123",
@@ -82,8 +83,8 @@ const registerController = asyncHandler(async (req, res) => {
         password,
         profile,
     });
-    
-    
+
+
     if (user) {
         // user.save()
         // .then(result => res.status(201).send({ msg: "User Register Successfully" }))
@@ -107,15 +108,24 @@ const registerController = asyncHandler(async (req, res) => {
 const verifyUser = asyncHandler(async (req, res, next) => {
     try {
         const { username } = req.method === "GET" ? req.query : req.body;
-
         // Check the user existence
         let exist = await userModel.findOne({ username });
         if (!exist) {
-            return res.status(404).send({ error: "Can't find User!" });
+            return res.status(404).send({error : "Username not found"});
         }
-        next();
+        if(req.method === "GET"){
+            next();
+        }
+        else{
+            res.status(201);
+            res.json({
+            usernameverified: true,
+            username: exist.username
+        });
+        }
     } catch (error) {
-        return res.status(404).send({ error: "Authentication Error" });
+        res.status(404);
+        throw new Error("Authentication Error");
     }
 });
 
@@ -146,17 +156,17 @@ const loginController = asyncHandler(async (req, res) => {
 });
 
 //user search api/user/register?search=aradhya
-const allUsers=asyncHandler(async(req,res)=>{
-     const keyword = req.query.search 
-     ? {
-        $or: [
-            { username: { $regex: req.query.search, $options: "i"} },
-            { email: {$regex: req.query.search, $options: "i"} },
-        ],
-     }
-     : {};
+const allUsers = asyncHandler(async (req, res) => {
+    const keyword = req.query.search
+        ? {
+            $or: [
+                { username: { $regex: req.query.search, $options: "i" } },
+                { email: { $regex: req.query.search, $options: "i" } },
+            ],
+        }
+        : {};
 
-     const users = await userModel.find(keyword).find({ _id: { $ne: req.user._id } });
+    const users = await userModel.find(keyword).find({ _id: { $ne: req.user._id } });
     res.send(users);
 });
 
@@ -186,14 +196,27 @@ async function updateUser(req, res) {
 }
 
 /** GET: http://localhost:8080/api/generateOTP */
-async function generateOTP(req, res) {
-    res.json('generateOTP route');
-}
+const  generateOTP = asyncHandler(async(req, res) => {
+    try {
+        req.app.locals.OTP =  otpGenerator.generate(6, { lowerCaseAlphabets: false, upperCaseAlphabets: false, specialChars: false});
+        console.log(req.app.locals.OTP);
+        res.status(201).send({ code: req.app.locals.OTP });
+    } catch (error) {
+        console.log(error);
+        res.status(400).send({error : "cant generate"});
+    }
+});
 
 /** GET: http://localhost:8080/api/verifyOTP */
-async function verifyOTP(req, res) {
-    res.json('verifyOTP route');
-}
+const verifyOTP = asyncHandler(async(req, res) => {
+    const { code } = req.query;
+    if(parseInt(req.app.locals.OTP) === parseInt(code)){
+        req.app.locals.OTP = null; // reset the OTP value
+        req.app.locals.resetSession = true; // start session for reset password
+        return res.status(201).send({ msg: 'Verify Successsfully!'})
+    }
+    return res.status(400).send({ error: "Invalid OTP"});
+});
 
 // successfully redirect user when OTP is valid
 /** GET: http://localhost:8080/api/createResetSession */
@@ -206,9 +229,9 @@ async function createResetSession(req, res) {
 async function resetPassword(req, res) {
     // Your implementation here
 }
-async function getUser(req, res) {
-
-}
+const getUser = asyncHandler(async(req, res) => {
+    res.status(201).send({msg : "working"})
+});
 
 
 module.exports = {
