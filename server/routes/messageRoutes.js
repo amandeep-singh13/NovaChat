@@ -6,9 +6,9 @@ const
        allMessages
     }= require("../controllers/messageControllers");
 const router = express.Router();
-router.route('/messages').get(protect,sendMessage);
+router.route('/messages').post(protect,sendMessage);
 
-router.route('/:chatId').post(protect,allMessages);
+router.route('/:chatId').get(protect,allMessages);
 
 module.exports=router;
 
