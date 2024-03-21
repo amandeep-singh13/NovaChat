@@ -28,6 +28,9 @@ import { ChatState } from "../../Context/ChatProvider"
 import { useNavigate } from "react-router-dom";
 import ProfileModal from "./ProfileModal";
 import ChatLoading from "../ChatLoading";
+import { getSender } from '../../config/ChatLogics';
+//import {Effect} from 'react-notification-Badge';
+//import NotificationBadge from "react-notification-badge";
 const SideDrawer = () => {
   const [search, setSearch] = useState("");
   const [searchResult, setsearchResult] = useState([]);
@@ -140,14 +143,25 @@ const SideDrawer = () => {
       </Text>
       <div>
         <Menu>
-          {/* notification badge */}
-          {/* codehere */}
-
+          <MenuButton p={1}>
+            {/* <NotificationBadge
+            count={notification.length}
+            effect={Effect.SCALE}
+            /> */}
           <BellIcon fontSize="2x1" m={1} />
-          {/* notification badge continues */}
+          </MenuButton>
+          <MenuList pl={2}>
+            {!notification.length &&"No New Messages"}
+            {notification.map(notif=>(
+              <MenuItem key={notif._id} onClick={() => {
+                setSelectedChat(notif.chat);
+                setNotification(notification.filter((n) => n !== notif));
+              }}>
+                {notif.chat.isGroupChat?`New message in ${notif.chat.chatName}`:`New message from ${getSender(user,notif.chat.users)}`}
+              </MenuItem>
+            ))}
+          </MenuList>
           </Menu>
-
-          {/* profile */}
           <Menu>
           <MenuButton as={Button} bg="white" rightIcon={<ChevronDownIcon />}>
             <Avatar
@@ -157,8 +171,6 @@ const SideDrawer = () => {
               src={user.profile}
             />
           </MenuButton>
-          
-          {/* dropdown menu */}
           <MenuList>
             <ProfileModal user={user}>
               <MenuItem>My Profile</MenuItem>{" "}
