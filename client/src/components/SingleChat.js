@@ -19,7 +19,7 @@ import io from 'socket.io-client'
 const ENDPOINT = "http://localhost:8080";
 var socket,selectedChatCompare;
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
-    const { user, selectedChat, setSelectedChat } = ChatState();
+    const { user, selectedChat, setSelectedChat,notification,setnotification } = ChatState();
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(false);
     const [socketConnected,setSocketConnected] = useState(false);
@@ -46,7 +46,10 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       useEffect(()=>{
         socket.on("message recieved",(newMessageRecieved)=> {
             if(!selectedChatCompare || selectedChatCompare._id !== newMessageRecieved.chat._id){
-                //give notification
+               if(!notification.includes(newMessageRecieved)){
+                setnotification([newMessageRecieved,...notification]);
+                setFetchAgain(!fetchAgain);
+               } 
     
             }else {
                 setMessages([...messages,newMessageRecieved]);
