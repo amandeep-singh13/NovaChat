@@ -19,7 +19,7 @@ import io from 'socket.io-client'
 const ENDPOINT = "http://localhost:8080";
 var socket,selectedChatCompare;
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
-    const { user, selectedChat, setSelectedChat,notification,setnotification } = ChatState();
+    const { user, selectedChat, setSelectedChat,notification,setNotification } = ChatState();
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(false);
     const [socketConnected,setSocketConnected] = useState(false);
@@ -47,7 +47,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         socket.on("message recieved",(newMessageRecieved)=> {
             if(!selectedChatCompare || selectedChatCompare._id !== newMessageRecieved.chat._id){
                if(!notification.includes(newMessageRecieved)){
-                setnotification([newMessageRecieved,...notification]);
+                setNotification([newMessageRecieved,...notification]);
                 setFetchAgain(!fetchAgain);
                } 
     
@@ -64,7 +64,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             try{
                 const config={
                     headers:{
-                        "Content-Type":"application/json",
+                        "Content-type":"application/json",
                         Authorization:`Bearer ${user.token}`,
                     },
                 };
@@ -145,6 +145,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     console.log(messages);
     useEffect(()=>{
         fetchMessages();
+        selectedChatCompare=selectedChat;
     },[selectedChat]);
 
     
@@ -198,7 +199,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                     w="100%"
                     h="100%"
                     borderRadius="lg"
-                //overflowY="hidden"
+                // overflowY="hidden"
                 >
                     {loading?(<Spinner
                     size="xl"
@@ -206,7 +207,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                     h={20}
                     alignSelf="center"
                     margin="auto"
-                    />):(<div className='messages'>
+                    />):(<div className='messages' style={{ maxHeight: '92%', overflowY: 'auto' }}>
                         <ScrollableChat messages={messages}/>
                     </div>
                     )}
