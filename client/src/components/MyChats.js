@@ -77,8 +77,9 @@ const MyChats = ({ fetchAgain }) => {
         h="95vh"
         borderRadius="xl"
       >
+        {/* scroller introduced */}
         {chats ? (
-          <Stack /*overflow="scroll" height="100vh"*/ className="bg-white">
+          <Stack overflow="scroll" height="98vh" className="bg-white">
             {chats.map((chat) => (
               <Box
                 className="rounded-lg h-10"
