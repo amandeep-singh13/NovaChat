@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState,useContext } from 'react';
 import { useDisclosure, Button, FormControl, Input, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, Box, useToast } from "@chakra-ui/react";
 import axios from 'axios';
 import { ChatState } from "../../Context/ChatProvider";
 import UserListItem from "../UserAvatar/UserListItem";
 import UserBadgeItem from '../UserAvatar/UserBadgeItem';
+import {ThemeContext} from "../../Context/ThemeContext"
 const GroupChatModal = ({ children }) => {
+    const {theme} = useContext(ThemeContext);
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [groupChatName, setGroupChatName] = useState("");
     const [selectedUsers, setSelectedUsers] = useState([]);
@@ -113,16 +115,29 @@ const GroupChatModal = ({ children }) => {
         <>
             <span onClick={onOpen}>{children}</span>
             <Modal isOpen={isOpen} onClose={onClose} className="flex items-center justify-center">
-                <ModalOverlay className=" opacity-50" />
-                <ModalContent className="bg-white w-80">
-                    <ModalHeader className="text-black font-semibold py-4 px-6" fontSize="25px" fontFamily="Work sans" d="flex" justifyContent="center">Create a Group Chat</ModalHeader>
+                <ModalOverlay className={`opacity-50 ${theme === "dark" ? "" : ""}`} />
+                <ModalContent className={`rounded-xl px-5 ${theme === "dark" ? "bg-black text-white" : "bg-white text-black"} w-80`}>
+                    <ModalHeader className="font-semibold py-4 px-6 text-center" fontSize="25px" fontFamily="Work sans">
+                        Create a Group Chat
+                    </ModalHeader>
                     <ModalCloseButton className="text-blue-500 hover:text-blue-700" />
                     <ModalBody d="flex" flexDir="column" alignItems="center">
                         <FormControl>
-                            <Input className="bg-gray-200 rounded-md p-2 px-3" placeholder="Group Name" mb={3} onChange={(e) => setGroupChatName(e.target.value)} />
+                            <Input
+                                className={`rounded-md p-2 px-3 ${theme === "dark" ? "bg-gray-800 text-white" : "bg-gray-200 text-black"}`}
+                                placeholder="Group Name"
+                                mb={3}
+                                onChange={(e) => setGroupChatName(e.target.value)}
+                            />
                         </FormControl>
                         <FormControl>
-                            <Input className="bg-gray-200 rounded-md p-2 px-3" placeholder="Add Users" mb={1} mt={2} onChange={(e) => handleSearch(e.target.value)} />
+                            <Input
+                                className={`rounded-md p-2 px-3 ${theme === "dark" ? "bg-gray-800 text-white" : "bg-gray-200 text-black"}`}
+                                placeholder="Add Users"
+                                mb={1}
+                                mt={2}
+                                onChange={(e) => handleSearch(e.target.value)}
+                            />
                         </FormControl>
                         <Box w="100%" d="flex" flexWrap="wrap">
                             {selectedUsers.map((u) => (
@@ -134,21 +149,27 @@ const GroupChatModal = ({ children }) => {
                             ))}
                         </Box>
                         {loading ? (
-                            <div>loading</div>
+                            <div>Loading...</div>
                         ) : (
                             searchResult
                                 ?.slice(0, 4)
-                                .map((user) =>
-                                (<UserListItem
-                                    key={user._id}
-                                    user={user}
-                                    handleFunction={() => handleGroup(user)} />
+                                .map((user) => (
+                                    <UserListItem
+                                        key={user._id}
+                                        user={user}
+                                        handleFunction={() => handleGroup(user)}
+                                    />
                                 ))
                         )}
 
                     </ModalBody>
                     <ModalFooter className="py-4 px-6 flex justify-end">
-                        <Button colorScheme="blue-500" className="mr-3 p-2 px-3 rounded-lg bg-blue-500" onClick={handleSubmit}>Create Chat</Button>
+                        <Button
+                            className="mr-3 p-2 px-3 rounded-lg bg-blue-500"
+                            onClick={handleSubmit}
+                        >
+                            Create Chat
+                        </Button>
                     </ModalFooter>
                 </ModalContent>
             </Modal>

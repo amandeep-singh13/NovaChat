@@ -9,7 +9,9 @@ import { getSender } from "../config/ChatLogics"
 import { ChatState } from "../Context/ChatProvider";
 import GroupChatModal from "./miscellaneous/GroupChatModal";
 import UserBadgeItem from "./UserAvatar/UserBadgeItem";
+import {ThemeContext} from "../Context/ThemeContext";
 const MyChats = ({ fetchAgain }) => {
+  const {theme} = useState(ThemeContext);
 
   const [loggedUser, setLoggedUser] = useState();
   const { selectedChat, setSelectedChat, user, chats, setChats } = ChatState();
@@ -41,7 +43,7 @@ const MyChats = ({ fetchAgain }) => {
     fetchChats();
   }, [fetchAgain])
   return (
-    <Box className="bg-white"
+    <Box className={`bg-${theme === 'dark' ? 'black': 'white'}`}
       pb={3}
       px={2}
       flexDir={"row"}
@@ -57,7 +59,7 @@ const MyChats = ({ fetchAgain }) => {
       fontFamily="Work sans"
       justifyContent="space-between"
     >
-      <Box className="flex bg-gray-200">
+    <Box className={`flex p-2 rounded-lg ${theme === 'dark' ? 'bg-black' : 'bg-gray-200'}`}>
       My Chats
       <GroupChatModal>
         <Button className="flex-row-reverse" bg="#E8E8E8"
@@ -79,26 +81,18 @@ const MyChats = ({ fetchAgain }) => {
       >
         {/* scroller introduced */}
         {chats ? (
-          <Stack overflow="scroll" height="98vh" className="bg-white">
-            {chats.map((chat) => (
-              <Box
-                className="rounded-lg h-10"
-                onClick={() => setSelectedChat(chat)}
-                cursor="pointer"
-                bg={setSelectedChat === chat ? "#38B2AC" : "#E9E9E9"}
-                color={setSelectedChat === chat ? "white" : "black"}
-                px={3}
-                py={4}
-                
-                
-                key={chat._id}
-              >
-                <Text>
-                  {!chat.isGroupChat ? getSender(loggedUser, chat.users) : chat.chatName}
-                </Text>
-              </Box>
-            ))}
-          </Stack>
+          <Stack overflow="scroll" height="98vh" className={theme === 'dark' ? 'bg-gray-800' : 'bg-white'}>
+          {chats.map((chat) => (
+            <Box
+              key={chat._id}
+              className={`rounded-lg h-10 cursor-pointer px-3 py-4 ${theme === 'dark' ? 'text-white' : 'text-black'} ${theme === 'dark' ? (setSelectedChat === chat ? "bg-green-600" : "bg-gray-800") : (setSelectedChat === chat ? "bg-green-300" : "bg-gray-200")}`}
+              onClick={() => setSelectedChat(chat)}
+            >
+              {!chat.isGroupChat ? getSender(loggedUser, chat.users) : chat.chatName}
+            </Box>
+          ))}
+        </Stack>
+        
         ) : (<ChatLoading />)}
       </Box>
     </Box>

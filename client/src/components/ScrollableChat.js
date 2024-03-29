@@ -1,10 +1,12 @@
-import React from 'react'
+import React, {useContext} from 'react'
 import { Tooltip, Avatar } from '@chakra-ui/react'
 import ScrollableFeed from "react-scrollable-feed"
 import { isLastMessage, isSameSender,isSameSenderMargin,isSameUser } from '../config/ChatLogics'
 import { ChatState } from '../Context/ChatProvider'
+import {ThemeContext} from '../Context/ThemeContext'
 const ScrollableChat = ({messages}) => {
     const {user}=ChatState();
+    const {theme} = useContext(ThemeContext)
     return (
         <ScrollableFeed>
           {messages &&
@@ -34,6 +36,9 @@ const ScrollableChat = ({messages}) => {
                     padding: "5px 15px",
                     maxWidth: "75%",
                   }}
+                  className={`rounded-lg ${
+                    theme === 'dark' ? 'text-black bg-opacity-50' : 'text-black'
+                }`}
                 >
                   {m.content}
                 </span>
