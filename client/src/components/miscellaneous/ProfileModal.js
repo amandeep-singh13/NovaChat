@@ -13,8 +13,11 @@ import {
   Text,
   Image,
 } from "@chakra-ui/react";
+import {useContext} from "react";
+import {ThemeContext} from "../../Context/ThemeContext"
 
 const ProfileModal = ({ user, children }) => {
+  const {theme} = useContext(ThemeContext)
   const { isOpen, onOpen, onClose } = useDisclosure();
   return (
     <>
@@ -25,8 +28,11 @@ const ProfileModal = ({ user, children }) => {
       )}
       <Modal className="ml-20"size="lg" onClose={onClose} isOpen={isOpen} isCentered>
         <ModalOverlay />
-        <ModalContent className="rounded-xl 
-         px-5 bg-pink-200"width="30%"  h="290px" flexDir={"column"}>
+        <ModalContent
+        className={`rounded-xl px-5 ${
+          theme === "dark" ? "bg-black text-white" : "bg-pink-200"
+        }`}
+         width="30%"  h="290px" flexDir={"column"}>
           <ModalHeader
             className="font-semibold"
             fontSize="20px"
