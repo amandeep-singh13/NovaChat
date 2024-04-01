@@ -50,8 +50,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     fetchMessages();
     selectedChatCompare = selectedChat;
   }, [selectedChat]);
-  console.log(notification, "-------------");
-
+  //console.log(notification, "-------------");
   useEffect(() => {
     socket.on("message recieved", (newMessageRecieved) => {
       if (
@@ -67,7 +66,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       }
     });
   });
-
   const sendMessage = async (event) => {
     if (event.key === "Enter" && newMessage) {
       socket.emit("stop typing", selectedChat._id);
@@ -140,6 +138,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       setMessages(data);
       setLoading(false);
       socket.emit("join chat", selectedChat._id);
+      setNotification(notification.filter((n) => n.chat._id !== selectedChat._id));
     } catch (error) {
       toast({
         title: "Error Occured!",

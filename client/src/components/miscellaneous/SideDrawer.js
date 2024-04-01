@@ -6,6 +6,7 @@ import { Input } from "@chakra-ui/input";
 import { Box, Text } from "@chakra-ui/layout";
 import { Spinner } from "@chakra-ui/spinner";
 import { useToast } from "@chakra-ui/toast";
+import UserListItem from "../UserAvatar/UserListItem";
 import {
   Menu,
   MenuButton,
@@ -93,7 +94,26 @@ const SideDrawer = () => {
         </Text>
         <div>
           <Menu>
-            <MenuButton p={1}>
+            <MenuButton p={1} pr={10}>
+            <div style={{ position: 'relative' }}>
+                {notification.length > 0 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '-8px',
+                    right: '-8px',
+                    backgroundColor: 'red',
+                    color: 'white',
+                    borderRadius: '50%',
+                    width: '20px',
+                    height: '20px',
+                    textAlign: 'center',
+                    fontSize: '12px',
+                    lineHeight: '20px',
+                  }}>
+                    {notification.length}
+                  </div>
+                )}
+              </div>
               <BellIcon fontSize="2x1" m={1} />
             </MenuButton>
             <MenuList pl={2}>
