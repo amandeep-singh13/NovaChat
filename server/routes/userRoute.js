@@ -6,8 +6,8 @@ const router = express.Router();
 
 /**import all controllers*/
 const controller = require('../controllers/userController.js');
-const { protect } = require("../middlewares/authMiddleware");
-const {localVariables} = require('../middlewares/otpMiddleware.js')
+const { protect, localVariables } = require("../middlewares/authMiddleware");
+
 
 // Extracting functions from the imported controller object
 const {
@@ -35,8 +35,8 @@ router.route('/login').post( loginController); //login to app
 
 /**GET Methods */
 router.route('/:username').get(getUser); //get user with username
-router.route('/generateotp').get(verifyUser,localVariables,generateOTP); //genrate random OTP
-router.route('/verifyotp').get(verifyOTP); //verify generated OTP
+router.route('/generateOTP').get(verifyUser,localVariables,generateOTP); //genrate random OTP
+router.route('/verifyotp').get(verifyUser, verifyOTP); //verify generated OTP
 router.route('/createResetSession').get(createResetSession); //reset all the variables
 
 /**PUT Methods */

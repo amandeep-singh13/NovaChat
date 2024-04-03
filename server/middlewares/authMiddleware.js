@@ -32,4 +32,14 @@ const protect = asyncHandler(async (req, res, next) => {
   }
 });
 
-module.exports = { protect };
+//otpmiddleware
+
+const localVariables = (req, res, next) =>{
+  req.app.locals = {
+      OTP : null,
+      resetSession : false
+  }
+  next();
+}
+
+module.exports = { protect, localVariables };

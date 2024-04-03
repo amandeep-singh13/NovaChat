@@ -81,7 +81,7 @@ const registerController = asyncHandler(async (req, res) => {
         username,
         email,
         password,
-        profile,
+        profile
     });
 
 
@@ -196,16 +196,20 @@ async function updateUser(req, res) {
 }
 
 /** GET: http://localhost:8080/api/generateOTP */
-const  generateOTP = asyncHandler(async(req, res) => {
+async function generateOTP(req,res){
     try {
-        req.app.locals.OTP =  otpGenerator.generate(6, { lowerCaseAlphabets: false, upperCaseAlphabets: false, specialChars: false});
-        console.log(req.app.locals.OTP);
-        res.status(201).send({ code: req.app.locals.OTP });
-    } catch (error) {
-        console.log(error);
-        res.status(400).send({error : "cant generate"});
-    }
-});
+        const generatedOTP = await otpGenerator.generate(6, { lowerCaseAlphabets: false, upperCaseAlphabets: false, specialChars: false });
+        if (!generatedOTP) {
+          res.status(500).send({ error: "Failed to generate OTP" });
+        } else {
+          req.app.locals.OTP = generatedOTP;
+          res.status(201).send({ code: req.app.locals.OTP });
+        }
+      } catch (error) {
+        console.error("Error generating OTP:", error);
+        res.status(500).send({ error: "Internal Server Error" });
+      }
+}
 
 /** GET: http://localhost:8080/api/verifyOTP */
 const verifyOTP = asyncHandler(async(req, res) => {
@@ -220,9 +224,13 @@ const verifyOTP = asyncHandler(async(req, res) => {
 
 // successfully redirect user when OTP is valid
 /** GET: http://localhost:8080/api/createResetSession */
-async function createResetSession(req, res) {
-    // Your implementation here
-}
+async function createResetSession(req,res){
+    if(req.app.locals.resetSession){
+         return res.status(201).send({ flag : req.app.locals.resetSession})
+    }
+    return res.status(440).send({error : "Session expired!"})
+ }
+ 
 
 // update the password when we have a valid session
 /** PUT: http://localhost:8080/api/resetPassword */
@@ -230,7 +238,7 @@ async function resetPassword(req, res) {
     // Your implementation here
 }
 const getUser = asyncHandler(async(req, res) => {
-    res.status(201).send({msg : "working"})
+    
 });
 
 

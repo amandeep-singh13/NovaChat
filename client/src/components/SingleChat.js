@@ -123,7 +123,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           Authorization: `Bearer ${user.token}`,
         },
       };
-      await axios.delete(`/api/messages/message/${messageId}`, config);
+      await axios.delete(`/api/message/deleteMessage/${messageId}`, config);
       setMessages(messages.filter((msg) => msg._id !== messageId));
     } catch (error) {
       console.error("Error deleting message:", error);
