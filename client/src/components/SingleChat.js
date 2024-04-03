@@ -2,6 +2,7 @@ import React, { useState, useContext } from "react";
 import { ChatState } from "../Context/ChatProvider";
 import { Text, Box } from "@chakra-ui/layout";
 import { FormControl } from "@chakra-ui/form-control";
+import EmojiPicker from "emoji-picker-react"; // Import EmojiPicker component
 import { Input } from "@chakra-ui/input";
 import { IconButton, Spinner, useToast } from "@chakra-ui/react";
 import { getSender, getSenderFull } from "../config/ChatLogics";
@@ -39,6 +40,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       preserveAspectRatio: "xMidYMid slice",
     },
   };
+  // Define showEmojiPicker state variable and setShowEmojiPicker function
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   useEffect(() => {
     socket = io(ENDPOINT);
     socket.emit("setup", user);
@@ -165,7 +168,12 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       });
     }
   };
-
+  const onEmojiClick = ( emojiObject) => {
+    const { emoji } = emojiObject;
+    if (emoji) {
+      setNewMessage((prevMessage) => prevMessage + emoji);
+    }
+  };
   return (
     <>
       {selectedChat ? (
@@ -260,6 +268,32 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 value={newMessage}
                 onKeyDown={handleKeyDown}
               />
+              <div style={{ position: "relative" }}>
+                <button
+                  style={{
+                    position: "fixed",
+                    right: "50px",
+                    bottom: "16px",
+                    zIndex: "100",
+                    fontSize:"23px",
+                  }}
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                >
+                  😀
+                </button>
+                {showEmojiPicker && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      right: "10px",
+                      bottom: "40px",
+                      zIndex: "101",
+                    }}
+                  >
+                    <EmojiPicker onEmojiClick={onEmojiClick} />
+                  </div>
+                )}
+              </div>
               <IconButton
                 className="mb-2 p-2 bg-gray-400 rounded-md"
                 aria-label="Send message"
