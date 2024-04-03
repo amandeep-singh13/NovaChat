@@ -1,6 +1,7 @@
 import React, { useState, useContext } from "react";
 import axios from "axios";
 import { Button } from "@chakra-ui/button";
+import {ModalCloseButton} from "@chakra-ui/react";
 import { useDisclosure } from "@chakra-ui/hooks";
 import { Input } from "@chakra-ui/input";
 import { Box, Text } from "@chakra-ui/layout";
@@ -139,7 +140,7 @@ const SideDrawer = () => {
         backgroundPosition="center"
         backgroundRepeat="no-repeat"
       >
-        <Tooltip label="Choose your fav one.." hasArrow placement="bottom-end">
+        <Tooltip className="bg-green-300 rounded-md p-2" label="Choose your fav one.." hasArrow placement="bottom-end">
           <Button variant="ghost" onClick={onOpen}>
             <i className="fas fa-search"></i>
             <Text fontSize="18px" d={{ base: "none", md: "flex" }} px={4}>
@@ -228,22 +229,24 @@ const SideDrawer = () => {
       <Drawer placement="left" width="30%" onClose={onClose} isOpen={isOpen}>
         <DrawerOverlay />
         <DrawerContent width="30%">
-          <DrawerHeader borderBottomWidth="1px" width="20%">
+          <DrawerHeader className="text-lg bg-white" borderBottomWidth="1px" width="20%">
             Search User
           </DrawerHeader>
-          <DrawerBody width="40%">
-            <Box d="flex" pb={30}>
+          <DrawerBody width="30%" className="bg-white">
+            <Box d="flex" pb={30}  >
               <Input
+                className="bg-gray-300 p-2 rounded-md mt-2"
                 placeholder="Search by name or email"
                 mr={2}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
-              <Button colorScheme="blue" onClick={handleSearch}>
+              <Button className="bg-blue-400 p-2 rounded-md" onClick={handleSearch}>
                 Go
               </Button>
+              <ModalCloseButton className="text-blue-500 hover:text-blue-700" />
             </Box>
-            <Box width="40%" h="100vh">
+            <Box width="100%" h="100vh">
               {loading ? (
                 <ChatLoading />
               ) : (

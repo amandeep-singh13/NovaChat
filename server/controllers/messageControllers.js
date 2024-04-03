@@ -50,7 +50,18 @@ const allMessages=asyncHandler(async(req, res)=>{
         throw new Error(error.message);
     }
 });
+ const deleteMessage = asyncHandler(async (req, res) => {
+    const messageId = req.params.id;
+  
+    try {
+      // Find the message by ID and delete it from the database
+      await Message.findByIdAndDelete(messageId);
+      res.status(204).send(); 
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      res.status(500).json({ error: 'Internal server error' }); // Send a 500 Internal Server Error response if an error occurs
+    }
+  });
 
 
-
-module.exports={sendMessage, allMessages};
+module.exports={sendMessage, allMessages,deleteMessage};

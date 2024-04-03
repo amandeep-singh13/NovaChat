@@ -3,16 +3,14 @@ const { protect } = require("../middlewares/authMiddleware");
 const
  {
        sendMessage,
-       allMessages
+       allMessages,
+       deleteMessage
     }= require("../controllers/messageControllers");
 const router = express.Router();
 router.route('/messages').post(protect,sendMessage);
 
 router.route('/:chatId').get(protect,allMessages);
+router.route('/deleteMessage/:id').delete(protect, deleteMessage);
 
 
 module.exports=router;
-
-
-
-// i have to include authmiddle ware here  then after this i will check the apis

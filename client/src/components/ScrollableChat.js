@@ -4,7 +4,9 @@ import ScrollableFeed from "react-scrollable-feed"
 import { isLastMessage, isSameSender,isSameSenderMargin,isSameUser } from '../config/ChatLogics'
 import { ChatState } from '../Context/ChatProvider'
 import {ThemeContext} from '../Context/ThemeContext'
-const ScrollableChat = ({messages}) => {
+import {MdSend,MdDelete} from "react-icons/md";
+import { IconButton } from "@chakra-ui/react";
+const ScrollableChat = ({messages,handleDelete}) => {
     const {user}=ChatState();
     const {theme} = useContext(ThemeContext)
     return (
@@ -41,6 +43,13 @@ const ScrollableChat = ({messages}) => {
                 }`}
                 >
                   {m.content}
+                  {user._id === m.sender._id && (
+                <IconButton
+                  icon={<MdDelete />}
+                  aria-label="Delete message"
+                  onClick={() => handleDelete(m._id)}
+                />
+              )}
                 </span>
               </div>
             ))}
@@ -48,4 +57,4 @@ const ScrollableChat = ({messages}) => {
       );
     };
     
-    export default ScrollableChat;
+  export default ScrollableChat;
