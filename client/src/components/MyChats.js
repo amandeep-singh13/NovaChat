@@ -2,7 +2,7 @@ import { AddIcon } from "@chakra-ui/icons";
 import { Box, Stack, Text } from "@chakra-ui/layout";
 import { useToast } from "@chakra-ui/toast";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import ChatLoading from "./ChatLoading";
 import { Button } from "@chakra-ui/react";
 import { getSender } from "../config/ChatLogics"
@@ -11,7 +11,7 @@ import GroupChatModal from "./miscellaneous/GroupChatModal";
 import UserBadgeItem from "./UserAvatar/UserBadgeItem";
 import {ThemeContext} from "../Context/ThemeContext";
 const MyChats = ({ fetchAgain }) => {
-  const {theme} = useState(ThemeContext);
+  const {theme} = useContext(ThemeContext);
 
   const [loggedUser, setLoggedUser] = useState();
   const { selectedChat, setSelectedChat, user, chats, setChats } = ChatState();
@@ -60,9 +60,9 @@ const MyChats = ({ fetchAgain }) => {
       justifyContent="space-between"
     >
     <Box className={`flex p-2 rounded-lg ${theme === 'dark' ? 'bg-black' : 'bg-gray-200'}`}>
-      My Chats
+      <Text style={{ color: theme === "dark" ? "white" : "black" }}>My Chats</Text>
       <GroupChatModal>
-        <Button className="flex-row-reverse" bg="#E8E8E8"
+        <Button className="flex-row-reverse p-1 ml-10 rounded-md"  bg="#E8E8E8"
           fontSize={{ base: "40px", md: "30px" }}
           pr={4}
           pl={4}
@@ -71,7 +71,7 @@ const MyChats = ({ fetchAgain }) => {
         >New Group Chat</Button>
       </GroupChatModal>
       </Box>
-      <Box className="bg-white"
+      <Box 
         d="flex"
         flexDir="column"
         p={3}
@@ -81,7 +81,7 @@ const MyChats = ({ fetchAgain }) => {
       >
         {/* scroller introduced */}
         {chats ? (
-          <Stack overflow="scroll" height="98vh" className={theme === 'dark' ? 'bg-gray-800' : 'bg-white'}>
+          <Stack overflow="scroll" height="98vh"  style={{ backgroundColor: theme === "dark" ? "black" : "white" }} >
           {chats.map((chat) => (
             <Box
               key={chat._id}
