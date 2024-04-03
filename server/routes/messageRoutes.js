@@ -10,6 +10,9 @@ router.route('/messages').post(protect,sendMessage);
 
 router.route('/:chatId').get(protect,allMessages);
 
+router.route('/messages/:id').delete(protect, deleteMessage);
+
+
 module.exports=router;
 
 

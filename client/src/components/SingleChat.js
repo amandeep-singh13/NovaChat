@@ -9,13 +9,14 @@ import ProfileModal from "./miscellaneous/ProfileModal";
 import axios from "axios";
 import ScrollableChat from "./ScrollableChat";
 import { useEffect } from "react";
-import { ArrowBackIcon } from "@chakra-ui/icons";
+import { ArrowBackIcon,EmailIcon } from "@chakra-ui/icons";
 import UpdateGroupChatModal from "./miscellaneous/UpdateGroupChatModal";
 import { Form } from "react-router-dom";
 import Lottie from "react-lottie";
 import { ThemeContext } from "../Context/ThemeContext";
 import animationData from "../animations/typing.json";
 import "./Style.css";
+import {MdSend,MdDelete} from "react-icons/md";
 import io from "socket.io-client";
 const ENDPOINT = "http://localhost:8080";
 var socket, selectedChatCompare;
@@ -66,8 +67,21 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       }
     });
   });
-  const sendMessage = async (event) => {
-    if (event.key === "Enter" && newMessage) {
+
+  const handleSend = () => {
+    if (newMessage.trim() !== "") {
+      sendMessage();
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault(); 
+      handleSend();
+    }
+  };
+  const sendMessage = async () => {
+    if (newMessage.trim() !== "") {
       socket.emit("stop typing", selectedChat._id);
       try {
         const config = {
@@ -85,13 +99,12 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           },
           config
         );
-        //console.log(data);
         socket.emit("new message", data);
         setMessages([...messages, data]);
       } catch (error) {
         toast({
           title: "Error Occurred!",
-          description: "Falied to send Message",
+          description: "Failed to send Message",
           status: "error",
           duration: 5000,
           isClosable: true,
@@ -138,7 +151,9 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       setMessages(data);
       setLoading(false);
       socket.emit("join chat", selectedChat._id);
-      setNotification(notification.filter((n) => n.chat._id !== selectedChat._id));
+      setNotification(
+        notification.filter((n) => n.chat._id !== selectedChat._id)
+      );
     } catch (error) {
       toast({
         title: "Error Occured!",
@@ -218,7 +233,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 <ScrollableChat messages={messages} />
               </div>
             )}
-            <FormControl onKeyDown={sendMessage} isRequired mt={3}>
+            <FormControl isRequired mt={3}>
               {istyping ? (
                 <div>
                   <Lottie
@@ -233,18 +248,30 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
               )}
               <Input
                 className={`rounded-lg p-3 ${
-                  theme === "dark"
-                    ? "bg-gray-900 text-white"
-                    :  "text-black"
-                }`} 
-                position="fixed" 
-                bottom="10" 
+                  theme === "dark" ? "bg-gray-900 text-white" : "text-black"
+                }`}
+                position="fixed"
+                bottom="10"
                 zIndex="99"
-                w="100%"
+                w="calc(100% - 60px)"
                 variant="filled"
                 placeholder="Enter a message.."
                 onChange={typingHandler}
                 value={newMessage}
+                onKeyDown={handleKeyDown}
+              />
+              <IconButton
+                className="mb-2 p-2 bg-gray-400 rounded-md"
+                aria-label="Send message"
+                icon={<MdSend />} 
+                colorScheme="blue"
+                onClick={handleSend}
+                position="fixed"
+                right="10"
+                bottom="11"
+                zIndex="99"
+                borderRadius="full"
+                fontSize="28px"
               />
             </FormControl>
           </Box>
@@ -259,7 +286,9 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             fontFamily="Work sans"
             justifyContent={{ base: "space-between" }}
             alignItems="center"
-            className={`${theme === 'dark' ? "bg-gray-900" : "bg-gray-200"} ${theme === 'dark' ? "text-white" : "text-black"}`} // Apply dynamic background color and text color based on theme
+            className={`${theme === "dark" ? "bg-gray-900" : "bg-gray-200"} ${
+              theme === "dark" ? "text-white" : "text-black"
+            }`} // Apply dynamic background color and text color based on theme
           >
             Click on user to start chatting.
           </Text>
