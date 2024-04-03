@@ -229,39 +229,39 @@ const SideDrawer = () => {
       <Drawer placement="left" width="30%" onClose={onClose} isOpen={isOpen}>
         <DrawerOverlay />
         <DrawerContent width="30%">
-          <DrawerHeader className="text-lg bg-white" borderBottomWidth="1px" width="20%">
-            Search User
-          </DrawerHeader>
-          <DrawerBody width="30%" className="bg-white">
-            <Box d="flex" pb={30}  >
-              <Input
-                className="bg-gray-300 p-2 rounded-md mt-2"
-                placeholder="Search by name or email"
-                mr={2}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+      <DrawerHeader className={`text-lg ${theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'}`} borderBottomWidth="1px" width="20%">
+        Search User
+      </DrawerHeader>
+      <DrawerBody width="30%" className={`${theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'}`}>
+        <Box d="flex" pb={30}  >
+          <Input
+            className={`bg-gray-300 p-2 rounded-md mt-2 ${theme === 'dark' ? 'text-black' : 'text-black'}`}
+            placeholder="Search by name or email"
+            mr={2}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <Button className={`bg-blue-400 p-2 rounded-md ${theme === 'dark' ? 'text-white' : 'text-black'}`} onClick={handleSearch}>
+            Go
+          </Button>
+          <ModalCloseButton className={`${theme === 'dark' ? 'text-white' : 'text-black'} hover:text-blue-700`} />
+        </Box>
+        <Box width="100%" h="100vh">
+          {loading ? (
+            <ChatLoading />
+          ) : (
+            searchResult?.map((user) => (
+              <UserListItem
+                key={user._id}
+                user={user}
+                handleFunction={() => accessChat(user._id)}
               />
-              <Button className="bg-blue-400 p-2 rounded-md" onClick={handleSearch}>
-                Go
-              </Button>
-              <ModalCloseButton className="text-blue-500 hover:text-blue-700" />
-            </Box>
-            <Box width="100%" h="100vh">
-              {loading ? (
-                <ChatLoading />
-              ) : (
-                searchResult?.map((user) => (
-                  <UserListItem
-                    key={user._id}
-                    user={user}
-                    handleFunction={() => accessChat(user._id)}
-                  />
-                ))
-              )}
-              {loadingChat && <Spinner ml="auto" d="flex" />}
-            </Box>
-          </DrawerBody>
-        </DrawerContent>
+            ))
+          )}
+          {loadingChat && <Spinner ml="auto" d="flex" />}
+        </Box>
+      </DrawerBody>
+    </DrawerContent>
       </Drawer>
     </>
   );
