@@ -116,6 +116,26 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       }
     }
   };
+  const handleDelete = async (messageId) => {
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+      await axios.delete(`/api/messages/message/${messageId}`, config);
+      setMessages(messages.filter((msg) => msg._id !== messageId));
+    } catch (error) {
+      console.error("Error deleting message:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete message",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
   const typingHandler = (e) => {
     setNewMessage(e.target.value);
 
@@ -238,7 +258,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 className="messages"
                 style={{ maxHeight: "92%", overflowY: "auto" }}
               >
-                <ScrollableChat messages={messages} />
+                <ScrollableChat messages={messages} handleDelete={handleDelete} />
               </div>
             )}
             <FormControl isRequired mt={3}>
