@@ -175,7 +175,7 @@ const SideDrawer = () => {
               </div>
               <BellIcon fontSize="2x1" m={1} />
             </MenuButton>
-            <MenuList pl={2}>
+            <MenuList pl={2} className={ `rounded-md p-1 ${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-gray-300 text-black'}`}>
               {!notification.length && "No New Messages"}
               {notification.map((notif) => (
                 <MenuItem

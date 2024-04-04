@@ -2,6 +2,7 @@ const asyncHandler = require("express-async-handler");
 const Message = require("../models/MessageModel");
 const userModel = require("../models/userModel");
 const Chat = require("../models/chatModel");
+const Reaction = require("../models/ReactionModel")
 
 const sendMessage=asyncHandler(async (req, res)=>{
     const { content, chatId} = req.body;
@@ -61,7 +62,26 @@ const allMessages=asyncHandler(async(req, res)=>{
       console.error('Error deleting message:', error);
       res.status(500).json({ error: 'Internal server error' }); // Send a 500 Internal Server Error response if an error occurs
     }
-  });
+});
+
+// Add functions for handling reactions
+const addReaction = asyncHandler(async (req, res) => {
+    const { messageId, reactionType } = req.body;
+    try{
+    const reaction = await Reaction.create({ userId: req.user._id, messageId, reactionType });
+    await Message.findByIdAndUpdate(messageId, { $push: { reactions: reaction._id } });
+    res.json(reaction);
+    } catch(error){
+        res.status(500).json({ error: "Internal server error"});
+    }
+});
+
+const getMessageWithReactions = asyncHandler(async (req, res) => {
+    const messageId = req.params.id;
+    const message = await Message.findById(messageId).populate('reactions');
+    res.json(message);
+});
 
 
-module.exports={sendMessage, allMessages,deleteMessage};
+
+module.exports={sendMessage, allMessages,deleteMessage,addReaction,getMessageWithReactions};
