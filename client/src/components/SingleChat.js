@@ -10,14 +10,14 @@ import ProfileModal from "./miscellaneous/ProfileModal";
 import axios from "axios";
 import ScrollableChat from "./ScrollableChat";
 import { useEffect } from "react";
-import { ArrowBackIcon,EmailIcon } from "@chakra-ui/icons";
+import { ArrowBackIcon, EmailIcon } from "@chakra-ui/icons";
 import UpdateGroupChatModal from "./miscellaneous/UpdateGroupChatModal";
 import { Form } from "react-router-dom";
 import Lottie from "react-lottie";
 import { ThemeContext } from "../Context/ThemeContext";
 import animationData from "../animations/typing.json";
 import "./Style.css";
-import {MdSend,MdDelete} from "react-icons/md";
+import { MdSend, MdDelete } from "react-icons/md";
 import io from "socket.io-client";
 const ENDPOINT = "http://localhost:8080";
 var socket, selectedChatCompare;
@@ -42,6 +42,14 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   };
   // Define showEmojiPicker state variable and setShowEmojiPicker function
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+  useEffect(() => {
+    socket = io(ENDPOINT);
+    socket.emit("setup", user);
+    // Other socket event listeners...
+    socket.on("add reaction", handleAddReaction);
+  }, []);
+
   useEffect(() => {
     socket = io(ENDPOINT);
     socket.emit("setup", user);
@@ -66,10 +74,26 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           setFetchAgain(!fetchAgain);
         }
       } else {
-        setMessages([...messages, newMessageRecieved]);
+        const hasReactions = newMessageRecieved.reactions &&
+          newMessageRecieved.reactions.length > 0;
+        // If the new message contains reactions, handle adding them
+        if (hasReactions) {
+          handleAddReaction(newMessageRecieved);
+        } else {
+          setMessages([...messages, newMessageRecieved]);
+        }
       }
     });
   });
+  // Inside the useEffect hook for listening to 'message deleted' event
+  useEffect(() => {
+    socket.on("message deleted", (deletedMessageId) => {
+      // Filter out the deleted message from the messages state
+      setMessages((messages) =>
+        messages.filter((message) => message._id !== deletedMessageId)
+      );
+    });
+  }, []);
 
   const handleSend = () => {
     if (newMessage.trim() !== "") {
@@ -78,8 +102,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault(); 
+    if (e.key === "Enter") {
+      e.preventDefault();
       handleSend();
     }
   };
@@ -124,6 +148,9 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         },
       };
       await axios.delete(`/api/message/deleteMessage/${messageId}`, config);
+      console.log(`Deleted message with ID: ${messageId}`);
+      // Emit the "delete message" event
+      socket.emit("delete message", { messageId, chatId: selectedChat._id });
       setMessages(messages.filter((msg) => msg._id !== messageId));
     } catch (error) {
       console.error("Error deleting message:", error);
@@ -134,6 +161,33 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         duration: 5000,
         isClosable: true,
       });
+    }
+  };
+
+  const handleAddReaction = (data) => {
+    const { messageId, reactionType } = data;
+    const updatedMessages = messages.map((message) => {
+      if (message._id === messageId) {
+        return { ...message, reactions: [...message.reactions, { reactionType }] };
+      }
+      return message;
+    });
+    setMessages(updatedMessages);
+  };
+
+  const handleReact = async (messageId, reactionType) => {
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+      // Make a POST request to add reaction
+      await axios.post("/api/message/addReaction", { messageId, reactionType }, config);
+      // Emit the 'add reaction' event to the server
+      socket.emit("add reaction", { messageId, reactionType });
+    } catch (error) {
+      // Handle error...
     }
   };
   const typingHandler = (e) => {
@@ -188,7 +242,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       });
     }
   };
-  const onEmojiClick = ( emojiObject) => {
+  const onEmojiClick = (emojiObject) => {
     const { emoji } = emojiObject;
     if (emoji) {
       setNewMessage((prevMessage) => prevMessage + emoji);
@@ -258,7 +312,11 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 className="messages"
                 style={{ maxHeight: "92%", overflowY: "auto" }}
               >
-                <ScrollableChat messages={messages} handleDelete={handleDelete} />
+                <ScrollableChat
+                  messages={messages}
+                  handleDelete={handleDelete}
+                  handleReact={handleReact}
+                />
               </div>
             )}
             <FormControl isRequired mt={3}>
@@ -276,7 +334,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
               )}
               <Input
                 className={`rounded-lg p-3 ${
-                  theme === "dark" ? "bg-gray-900 text-white" : "text-black"
+                  theme === "dark" ? "bg-gray-700 text-white" : "text-black"
                 }`}
                 position="fixed"
                 bottom="10"
@@ -295,7 +353,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                     right: "50px",
                     bottom: "16px",
                     zIndex: "100",
-                    fontSize:"23px",
+                    fontSize: "23px",
                   }}
                   onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                 >
@@ -317,7 +375,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
               <IconButton
                 className="mb-2 p-2 bg-gray-400 rounded-md"
                 aria-label="Send message"
-                icon={<MdSend />} 
+                icon={<MdSend />}
                 colorScheme="blue"
                 onClick={handleSend}
                 position="fixed"
