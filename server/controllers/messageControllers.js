@@ -2,7 +2,7 @@ const asyncHandler = require("express-async-handler");
 const Message = require("../models/MessageModel");
 const userModel = require("../models/userModel");
 const Chat = require("../models/chatModel");
-const Reaction = require("../models/ReactionModel")
+const Reactions = require("../models/ReactionModel")
 
 const sendMessage=asyncHandler(async (req, res)=>{
     const { content, chatId} = req.body;
@@ -67,8 +67,11 @@ const allMessages=asyncHandler(async(req, res)=>{
 // Add functions for handling reactions
 const addReaction = asyncHandler(async (req, res) => {
     const { messageId, reactionType } = req.body;
+    console.log(req.body);
+    console.log(req.user._id)
     try{
-    const reaction = await Reaction.create({ userId: req.user._id, messageId, reactionType });
+    console.log("try")
+    const reaction = await Reactions.create({ userId: req.user._id, messageId, reactionType });
     await Message.findByIdAndUpdate(messageId, { $push: { reactions: reaction._id } });
     res.json(reaction);
     } catch(error){
@@ -76,11 +79,12 @@ const addReaction = asyncHandler(async (req, res) => {
     }
 });
 
-const getMessageWithReactions = asyncHandler(async (req, res) => {
-    const messageId = req.params.id;
-    const message = await Message.findById(messageId).populate('reactions');
+ const getMessageWithReactions = asyncHandler(async (req, res) => {
+     const messageId = req.params.id;
+     const message = await Message.findById(messageId).populate('reactions');
     res.json(message);
-});
+ });
+
 
 
 

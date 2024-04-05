@@ -9,6 +9,8 @@ const router = require("./routes/userRoute");
 const { notFound, errorHandler } = require("./middlewares/errorMiddleware");
 const chatRoutes = require("./routes/chatRoutes");
 const http = require("http");
+const Reactions = require("./models/ReactionModel");
+const Message = require("./models/MessageModel");
 
 // Configure dotenv
 dotenv.config();
@@ -60,6 +62,7 @@ connectDb()
     io.on("connection", (socket) => {
       console.log("connected to socket-io");
       socket.on("setup", (userData) => {
+        socket.userId = userData._id
         socket.join(userData._id);
         console.log(userData._id);
         socket.emit("connected");
@@ -97,10 +100,11 @@ connectDb()
       });
 
       // Socket.IO event for reacting to a message
-      socket.on("add reaction", async (data) => {
+      socket.on("add reaction", async (data,chatId) => {
         const { messageId, reactionType } = data;
-        const reaction = await Reaction.create({
-          userId: socket.userId,
+        const {userId} = socket;
+        const reaction = await Reactions.create({
+          userId,
           messageId,
           reactionType,
         });
@@ -109,7 +113,7 @@ connectDb()
           { $push: { reactions: reaction._id } },
           { new: true }
         ).populate("reactions");
-        socket.to(selectedChat._id).emit("message updated", message);
+        socket.to(chatId).emit("message updated", message);
       });
 
       socket.off("setup", () => {

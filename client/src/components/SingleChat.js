@@ -46,7 +46,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   useEffect(() => {
     socket = io(ENDPOINT);
     socket.emit("setup", user);
-    // Other socket event listeners...
     socket.on("add reaction", handleAddReaction);
   }, []);
 
@@ -182,12 +181,20 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           Authorization: `Bearer ${user.token}`,
         },
       };
+      console.log("reaction before post")
       // Make a POST request to add reaction
-      await axios.post("/api/message/addReaction", { messageId, reactionType }, config);
+      await axios.post("/api/message/reaction", { messageId, reactionType }, config);
       // Emit the 'add reaction' event to the server
       socket.emit("add reaction", { messageId, reactionType });
     } catch (error) {
-      // Handle error...
+      console.error("Error on reacting message:", error);
+      toast({
+        title: "Error",
+        description: "Failed to react on message",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
     }
   };
   const typingHandler = (e) => {
@@ -226,6 +233,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         config
       );
       setMessages(data);
+      //const {data:messagesWithReactions } = await axios.get(`/api/message/messageWithReactions/${selectedChat._id}`, config);
+      //setMessages(messagesWithReactions); // Update messages state with messages containing reactions
       setLoading(false);
       socket.emit("join chat", selectedChat._id);
       setNotification(
