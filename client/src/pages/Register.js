@@ -28,19 +28,26 @@ const Register = () => {
     validateOnChange: false,
     onSubmit: async (values) => {
       values = await Object.assign(values, { profile: file || '' });
-      console.log(typeof(file));
+      console.log(typeof (file));
       console.log(values);
       try {
-        console.log('Form values:', values);
-        await axios.post('/api/user/register', values);
-        toast.success('Register Successfully', {
-          duration: 4000,
-          position: 'top-center',
-        })
-        navigate('/login');
+        const response = await axios.post('/api/user/register', values);
+        if (response.data.success) {
+          toast.success('OTP Sent Successfully', {
+            duration: 4000,
+            position: 'top-center',
+          })
+          navigate('/otp');
+        } else {
+          toast.error(response.data.message, { // Display error message from the server
+            duration: 4000,
+            position: 'top-center',
+          });
+        }
+
       } catch (error) {
         console.error('Registration error:', error);
-        toast.error('Username Exists or Invalid Data', {
+        toast.error( error.response.data.message, { // Display generic error message for network or other issues
           duration: 4000,
           position: 'top-center',
         });

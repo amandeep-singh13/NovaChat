@@ -1,7 +1,10 @@
 const userModel = require('../models/userModel');
 const asyncHandler = require("express-async-handler");
 const generateToken = require('../config/generateToken');
-const otpGenerator = require('otp-generator');
+
+const generateOTP = require('../utils/generateOTP');
+const sendEmail = require('../utils/sendEmail');
+
 /** POST: http://localhost:8080/api/user/register 
  * @param : {
   "username" : "example123",
@@ -63,46 +66,28 @@ const otpGenerator = require('otp-generator');
 const registerController = asyncHandler(async (req, res) => {
     const { username, email, password, profile } = req.body;
     if (!username || !email || !password) {
-        res.status(400);
-        console.log("no input recieved");
-        throw new Error("Please enter all the feilds");
+        return res.status(400).json({ success: false, message: 'Please enter all fields' });
     }
     const usernameExists = await userModel.findOne({ username });
     const emailExists = await userModel.findOne({ email });
     if (usernameExists) {
-        res.status(400);
-        throw new Error("Username already exists");
+        return res.status(400).json({ success: false, message: 'Username already exists' });
     }
     if (emailExists) {
-        res.status(400);
-        throw new Error("Email already exists");
+        return res.status(400).json({ success: false, message: 'Email already exists' });
     }
-    const user = await userModel.create({
-        username,
-        email,
-        password,
-        profile
-    });
+    req.app.locals = {username, email, password, profile};
+    // Generate OTP and send it to the email
+    const otp = generateOTP();
+    const emailSent = await sendEmail(email, otp);
 
-
-    if (user) {
-        // user.save()
-        // .then(result => res.status(201).send({ msg: "User Register Successfully" }))
-        // .catch(error => res.status(500).send({ error }))
-        res.status(201).json({
-            _id: user._id,
-            password: user.password,
-            username: user.username,
-            email: user.email,
-            profile: user.profile,
-            token: generateToken(user._id),
-        })
+    if (!emailSent) {
+        return res.status(500).json({ success: false, message: 'Failed to send OTP' });
     }
-    else {
-        res.status(400);
-        throw new Error("failed to create the user");
-    }
+    req.app.locals.otp = otp;
+    res.status(200).json({ success: true, message: 'OTP sent successfully' });
 });
+
 
 /** middleware for verify user */
 const verifyUser = asyncHandler(async (req, res, next) => {
@@ -111,17 +96,17 @@ const verifyUser = asyncHandler(async (req, res, next) => {
         // Check the user existence
         let exist = await userModel.findOne({ username });
         if (!exist) {
-            return res.status(404).send({error : "Username not found"});
+            return res.status(404).send({ error: "Username not found" });
         }
-        if(req.method === "GET"){
+        if (req.method === "GET") {
             next();
         }
-        else{
+        else {
             res.status(201);
             res.json({
-            usernameverified: true,
-            username: exist.username
-        });
+                usernameverified: true,
+                username: exist.username
+            });
         }
     } catch (error) {
         res.status(404);
@@ -195,50 +180,79 @@ async function updateUser(req, res) {
     res.json('updateUser route');
 }
 
-/** GET: http://localhost:8080/api/generateOTP */
-async function generateOTP(req,res){
-    try {
-        const generatedOTP = await otpGenerator.generate(6, { lowerCaseAlphabets: false, upperCaseAlphabets: false, specialChars: false });
-        if (!generatedOTP) {
-          res.status(500).send({ error: "Failed to generate OTP" });
-        } else {
-          req.app.locals.OTP = generatedOTP;
-          res.status(201).send({ code: req.app.locals.OTP });
-        }
-      } catch (error) {
-        console.error("Error generating OTP:", error);
-        res.status(500).send({ error: "Internal Server Error" });
-      }
-}
+/** POST: http://localhost:8080/api/user/sendOTP */
+// Controller function to send OTP
+const sendOTP =asyncHandler(async(req, res) => {
+    const { email } = req.app.locals;
+    console.log(email);
+    const otp = generateOTP();
 
-/** GET: http://localhost:8080/api/verifyOTP */
-const verifyOTP = asyncHandler(async(req, res) => {
-    const { code } = req.query;
-    if(parseInt(req.app.locals.OTP) === parseInt(code)){
-        req.app.locals.OTP = null; // reset the OTP value
-        req.app.locals.resetSession = true; // start session for reset password
-        return res.status(201).send({ msg: 'Verify Successsfully!'})
+    if (!otp) {
+        return res.status(500).json({ success: false, message: 'Failed to generate OTP' });
     }
-    return res.status(400).send({ error: "Invalid OTP"});
+
+    const emailSent = await sendEmail(email, otp);
+
+
+    if (emailSent) {
+        req.app.locals.otp = otp;
+        res.status(200).json({ success: true, message: 'OTP sent successfully', otp });
+    } else {
+        res.status(500).json({ success: false, message: 'Failed to send OTP' });
+    }
+});
+
+
+/** POST: http://localhost:8080/api/user/verifyOTP */
+const verifyOTP = asyncHandler(async (req, res) => {
+    const { otp } = req.body;
+    const { username, password, email, profile } = req.app.locals;
+    console.log("enteredOTP", otp);
+    console.log("sendOTP", req.app.locals.otp);
+    if (otp !== req.app.locals.otp) {
+        return res.status(400).json({ success: false, message: 'Incorrect OTP' });
+    }
+    //create user in database if otp is correct
+    const user = await userModel.create({
+        username,
+        email,
+        password,
+        profile
+    });
+
+
+    if (user) {
+        res.status(201).json({
+            _id: user._id,
+            password: user.password,
+            username: user.username,
+            email: user.email,
+            profile: user.profile,
+            token: generateToken(user._id),
+        })
+    }
+    else {
+        res.status(400).json({ success: false, message: 'Failed to create user' });
+    }
 });
 
 // successfully redirect user when OTP is valid
 /** GET: http://localhost:8080/api/createResetSession */
-async function createResetSession(req,res){
-    if(req.app.locals.resetSession){
-         return res.status(201).send({ flag : req.app.locals.resetSession})
+async function createResetSession(req, res) {
+    if (req.app.locals.resetSession) {
+        return res.status(201).send({ flag: req.app.locals.resetSession })
     }
-    return res.status(440).send({error : "Session expired!"})
- }
- 
+    return res.status(440).send({ error: "Session expired!" })
+}
+
 
 // update the password when we have a valid session
 /** PUT: http://localhost:8080/api/resetPassword */
 async function resetPassword(req, res) {
     // Your implementation here
 }
-const getUser = asyncHandler(async(req, res) => {
-    
+const getUser = asyncHandler(async (req, res) => {
+
 });
 
 
@@ -249,7 +263,7 @@ module.exports = {
     getUser,
     verifyUser,
     updateUser,
-    generateOTP,
+    sendOTP,
     verifyOTP,
     createResetSession,
     resetPassword
