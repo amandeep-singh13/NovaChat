@@ -98,6 +98,21 @@ connectDb()
           io.to(chatId).emit("message deleted", messageId);
         }
       });
+      
+      //socket on clearChat
+      socket.on("clear chat", async (chatId) => {
+        try {
+            // Implement logic to clear the chat for the provided chatId
+            // For example, you can delete all messages associated with the chatId
+            // Once the chat is cleared, emit an event to inform clients
+            // Emitting to all clients in the chat room
+            // This example assumes you have a method to clear chat on your database
+            await clearChatInDatabase(chatId);
+            io.to(chatId).emit("chat cleared");
+        } catch (error) {
+            console.error("Error clearing chat:", error);
+        }
+    });
 
       // Socket.IO event for reacting to a message
       socket.on("add reaction", async (data,chatId) => {
