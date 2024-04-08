@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext,useEffect } from "react";
 import axios from "axios";
 import { Button } from "@chakra-ui/button";
 import {ModalCloseButton} from "@chakra-ui/react";
@@ -31,7 +31,6 @@ import ProfileModal from "./ProfileModal";
 import ChatLoading from "../ChatLoading";
 import { getSender } from "../../config/ChatLogics";
 import { ThemeContext } from "../../Context/ThemeContext"; // Import the ThemeContext
-
 const SideDrawer = () => {
   const [search, setSearch] = useState("");
   const [searchResult, setsearchResult] = useState([]);
@@ -51,10 +50,71 @@ const SideDrawer = () => {
     setChats,
   } = ChatState();
 
-  const logoutHandler = () => {
+  const logoutHandler=()=>{
     localStorage.removeItem("userInfo");
     setUser(null);
     navigate("/");
+  }
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('/api/notification/notifications');
+      setNotification(response.data);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch notifications",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const markNotificationAsRead = async (notificationId) => {
+    try {
+      await axios.put(`/api/notification/notifications/${notificationId}/read`);
+      // Remove the notification from the state after marking as read
+      setNotification((prevNotifications) =>
+        prevNotifications.filter((notification) => notification._id !== notificationId)
+      );
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      toast({
+        title: "Error",
+        description: "Failed to mark notification as read",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
+
+  const deleteNotification = async (notificationId) => {
+    try {
+      await axios.delete(`/api/notification/notifications/${notificationId}/delete`);
+      // Remove the deleted notification from the state
+      setNotification((prevNotifications) =>
+        prevNotifications.filter((notification) => notification._id !== notificationId)
+      );
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete notification",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
   };
 
   const toast = useToast();
@@ -97,6 +157,7 @@ const SideDrawer = () => {
   };
 
   const accessChat = async (userId) => {
+    console.log("access chat")
     console.log(userId);
 
     try {
@@ -125,6 +186,7 @@ const SideDrawer = () => {
     }
   };
 
+  
   return (
     <>
       <Box
@@ -185,9 +247,9 @@ const SideDrawer = () => {
                     setNotification(notification.filter((n) => n !== notif));
                   }}
                 >
-                  {notif.chat.isGroupChat
+                   {notif.chat.isGroupChat
                     ? `New message in ${notif.chat.chatName}`
-                    : `New message from ${getSender(user, notif.chat.users)}`}
+                    : `New message from ${getSender(user, notif.chat.users)}`} 
                 </MenuItem>
               ))}
             </MenuList>

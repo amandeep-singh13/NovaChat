@@ -8,6 +8,7 @@ const messageRoutes = require("./routes/messageRoutes");
 const router = require('./routes/userRoute');
 const { notFound, errorHandler } = require("./middlewares/errorMiddleware");
 const chatRoutes = require("./routes/chatRoutes");
+const NotificationRoutes =require("./routes/NotificationRoutes")
 const http = require('http');
 
 // Configure dotenv
@@ -34,6 +35,7 @@ app.get('/', (req, res) => {
 app.use('/api/user', router);
 app.use('/api/chat', chatRoutes);
 app.use("/api/message", messageRoutes);
+app.use("/api/notification", NotificationRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
@@ -64,6 +66,7 @@ connectDb()
                console.log(userData._id);
                socket.emit("connected");
             });
+            
             socket.on('join chat',(room)=> {
                 socket.join(room);
                 console.log("User Joined Room:" + room);

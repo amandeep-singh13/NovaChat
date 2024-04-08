@@ -4,6 +4,7 @@ const userModel = require("../models/userModel");
 
 //accessChat api handler(one on one chat between user logged in and userid provided)
 const accessChat = asyncHandler(async (req,res)=>{
+    console.log("helllo");
     const {userId} = req.body;
     if(!userId){
         console.log("UserId param not sent with request");

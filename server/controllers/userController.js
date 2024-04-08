@@ -62,6 +62,7 @@ const otpGenerator = require('otp-generator');
 //register api handler
 const registerController = asyncHandler(async (req, res) => {
     const { username, email, password, profile } = req.body;
+    console.log("register");
     if (!username || !email || !password) {
         res.status(400);
         console.log("no input recieved");

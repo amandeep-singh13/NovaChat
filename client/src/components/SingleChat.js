@@ -102,8 +102,23 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           },
           config
         );
+        console.log("check");
+         // Check if the selected chat is not opened or selected
+         console.log(selectedChat);
+         console.log(selectedChat._id);
+         console.log(data.chat._id);
+         if (/*!selectedChat || selectedChat._id !== data.chat._id*/1) {
+          console.log("again");
+          // Call createNotification API endpoint after sending the message
+          await axios.post("/api/notification/notifications/send", {
+            sender: user, // Pass the sender information
+            receiver: data.chat.users.map((user) => user._id),
+            message: newMessage,
+          });
+      }
         socket.emit("new message", data);
         setMessages([...messages, data]);
+
       } catch (error) {
         toast({
           title: "Error Occurred!",
