@@ -31,8 +31,11 @@ import ProfileModal from "./ProfileModal";
 import ChatLoading from "../ChatLoading";
 import { getSender } from "../../config/ChatLogics";
 import { ThemeContext } from "../../Context/ThemeContext"; // Import the ThemeContext
+import { useAuth } from "../../Context/AuthContext";
+
 
 const SideDrawer = () => {
+  const { logout } = useAuth();
   const [search, setSearch] = useState("");
   const [searchResult, setsearchResult] = useState([]);
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -53,6 +56,7 @@ const SideDrawer = () => {
 
   const logoutHandler = () => {
     localStorage.removeItem("userInfo");
+    logout();
     setUser(null);
     navigate("/");
   };

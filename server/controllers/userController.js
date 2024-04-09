@@ -63,7 +63,7 @@ const sendEmail = require('../utils/sendEmail');
 }
 */
 //register api handler
-const registerController = asyncHandler(async (req, res) => {
+const verifyRegister = asyncHandler(async (req, res, next) => {
     const { username, email, password, profile } = req.body;
     if (!username || !email || !password) {
         return res.status(400).json({ success: false, message: 'Please enter all fields' });
@@ -76,16 +76,37 @@ const registerController = asyncHandler(async (req, res) => {
     if (emailExists) {
         return res.status(400).json({ success: false, message: 'Email already exists' });
     }
-    req.app.locals = {username, email, password, profile};
-    // Generate OTP and send it to the email
-    const otp = generateOTP();
-    const emailSent = await sendEmail(email, otp);
+    req.app.locals = {username, email, password, profile, isVerified: true};
+    next();
+});
 
-    if (!emailSent) {
-        return res.status(500).json({ success: false, message: 'Failed to send OTP' });
+//actual Registration done here, database entry
+const registerController = asyncHandler(async(req,res) =>{
+    const { username, password, email, profile} = req.app.locals;
+    //create user in database if otp is correct
+    
+    const user = await userModel.create({
+        username,
+        email,
+        password,
+        profile
+    });
+
+
+    if (user) {
+        req.app.locals = {};
+        res.status(201).json({
+            _id: user._id,
+            password: user.password,
+            username: user.username,
+            email: user.email,
+            profile: user.profile,
+            token: generateToken(user._id),
+        })
     }
-    req.app.locals.otp = otp;
-    res.status(200).json({ success: true, message: 'OTP sent successfully' });
+    else {
+        res.status(400).json({ success: false, message: 'Failed to create user' });
+    }
 });
 
 
@@ -117,28 +138,41 @@ const verifyUser = asyncHandler(async (req, res, next) => {
 
 
 //login api handling
-const loginController = asyncHandler(async (req, res) => {
+const verifyLogin = asyncHandler(async (req, res, next) => {
     const { username, password } = req.body;
     const user = await userModel.findOne({ username });
     if (!user) {
-        res.status(401);
-        throw new Error("Username not found");
+        return res.status(401).json({ success: false, message: 'Username Not Found' });
     }
     else if (user && (await user.matchPassword(password))) {
-        res.json({
-            _id: user._id,
-            password: user.password,
-            username: user.username,
-            email: user.email,
-            profile: user.profile,
-            token: generateToken(user._id),
-        });
+        email = user.email;
+        req.app.locals = {user, email, isVerified: true};
+        next();
+        
     }
     else {
-        res.status(401);
-        throw new Error("Invalid password");
+        return res.status(401).json({ success: false, message: 'Invalid Password' });
     }
 });
+
+//loginUser in frontend after verifying 
+const loginController = asyncHandler(async (req,res) => {
+    if(req.app.locals.isVerified && req.app.locals.verifiedOTP){
+        const user = req.app.locals.user;
+        if(user){
+            req.app.locals = {};
+            return res.json({
+                _id: user._id,
+                username: user.username,
+                email: user.email,
+                profile: user.profile,
+                token: generateToken(user._id),
+            });
+        }
+    }
+    return res.status(401).json({ success: false, message: 'Verification Not Done' });
+});
+
 
 //user search api/user/register?search=aradhya
 const allUsers = asyncHandler(async (req, res) => {
@@ -183,8 +217,13 @@ async function updateUser(req, res) {
 /** POST: http://localhost:8080/api/user/sendOTP */
 // Controller function to send OTP
 const sendOTP =asyncHandler(async(req, res) => {
-    const { email } = req.app.locals;
-    console.log(email);
+    const { email, isVerified } = req.app.locals;
+    if(isVerified !== true){
+        res.status(400).json({ success: false, message: 'Verify Details First' });
+    }
+    if(!email){
+        res.status(400).json({ success: false, message: 'Email Address Not Known' });
+    }
     const otp = generateOTP();
 
     if (!otp) {
@@ -204,36 +243,19 @@ const sendOTP =asyncHandler(async(req, res) => {
 
 
 /** POST: http://localhost:8080/api/user/verifyOTP */
-const verifyOTP = asyncHandler(async (req, res) => {
+const verifyOTP = asyncHandler(async (req, res, next) => {
     const { otp } = req.body;
-    const { username, password, email, profile } = req.app.locals;
     console.log("enteredOTP", otp);
-    console.log("sendOTP", req.app.locals.otp);
-    if (otp !== req.app.locals.otp) {
+    const sentotp  =req.app.locals.otp;
+    console.log("sentotp", sentotp);
+    if(!sentotp){
+        return res.status(400).json({ success: false, message: 'Request to Send OTP First!' });
+    }
+    if (otp !== sentotp) {
         return res.status(400).json({ success: false, message: 'Incorrect OTP' });
     }
-    //create user in database if otp is correct
-    const user = await userModel.create({
-        username,
-        email,
-        password,
-        profile
-    });
-
-
-    if (user) {
-        res.status(201).json({
-            _id: user._id,
-            password: user.password,
-            username: user.username,
-            email: user.email,
-            profile: user.profile,
-            token: generateToken(user._id),
-        })
-    }
-    else {
-        res.status(400).json({ success: false, message: 'Failed to create user' });
-    }
+    req.app.locals.verifiedOTP = true;
+    next();
 });
 
 // successfully redirect user when OTP is valid
@@ -257,7 +279,9 @@ const getUser = asyncHandler(async (req, res) => {
 
 
 module.exports = {
+    verifyRegister,
     registerController,
+    verifyLogin,
     loginController,
     allUsers,
     getUser,

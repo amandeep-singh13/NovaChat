@@ -1,41 +1,72 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
+import { useAuth } from '../Context/AuthContext';
 import axios from 'axios';
 
 import styles from '../css/Username.module.css';
 
 axios.defaults.baseURL = 'http://localhost:8080';
 const OTPVerification = () => {
+
+  const { isLoggedIn, login, otpState, setOtpFromRedirect } = useAuth();
   const [otp, setOtp] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const response = await axios.post('/api/user/verifyOTP', { otp });
-      if (response.status === 201) {
-        toast.success('Register Successfully..', {
-          duration: 4000,
-          position: 'top-center',
-        })
-        navigate('/login'); // Redirect to success page
-      } else {
-        console.error('Failed to verify OTP:', response.data.message);
-        // Display error message from the server
-        toast.error(response.data.message || 'Failed to verify OTP', {
+    //redirected from Register page
+    if (otpState === 'isRegister') {
+      try {
+        const response = await axios.post('/api/user/createUser', { otp });
+        if (response.status === 201) {
+          toast.success('Register Successfully..', {
+            duration: 4000,
+            position: 'top-center',
+          });
+          setOtpFromRedirect('');
+          navigate('/login'); // Redirect to success page
+        } else {
+          console.error('Failed to verify OTP:', response.data.message);
+          // Display error message from the server
+          toast.error(response.data.message || 'Failed to verify OTP', {
+            duration: 4000,
+            position: 'top-center',
+          });
+        }
+      } catch (error) {
+        console.error('Failed to verify OTP:', error);
+        // Display generic error message for network or other issues
+        toast.error(error.response.data.message, {
           duration: 4000,
           position: 'top-center',
         });
       }
-    } catch (error) {
-      console.error('Failed to verify OTP:', error);
-      // Display generic error message for network or other issues
-      toast.error(error.response.data.message, {
-        duration: 4000,
-        position: 'top-center',
-      });
     }
+
+    //if redirected from login page
+    else if (otpState === 'isLogin') {
+      try {
+        const response = await axios.post('/api/user/login', { otp });
+        toast.success('Login Successfully', {
+          duration: 4000,
+          position: 'top-center',
+        });
+        console.log("the data is : ", response.data);
+        localStorage.setItem("userInfo", JSON.stringify(response.data));
+        login();
+        navigate('/chats');
+      }
+      catch (error) {
+        console.error('Failed to verify OTP:', error);
+        // Display generic error message for network or other issues
+        toast.error(error.response.data.message, {
+          duration: 4000,
+          position: 'top-center',
+        });
+      }
+    }
+
   };
   const handleResendOTP = async () => {
     try {
@@ -63,6 +94,15 @@ const OTPVerification = () => {
       });
     }
   };
+  useEffect(() => {
+    if (isLoggedIn && (!otpState)) {
+      navigate("/chats");
+    }
+    if (!otpState) {
+      navigate("/");
+    }
+  }, [navigate]);
+
 
   return (
     <div className="container mx-auto">

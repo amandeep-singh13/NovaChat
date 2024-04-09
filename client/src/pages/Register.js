@@ -4,18 +4,21 @@ import avatar from '../assets/profile.png';
 import toast, { Toaster } from 'react-hot-toast';
 import { useFormik } from 'formik';
 import { registerValidate } from '../helper/validate';
-import { registerUser } from '../helper/helper';
+
+import { useAuth } from '../Context/AuthContext';
 import convertToBase64 from '../helper/convert';
 import axios from 'axios';
 import styles from '../css/Username.module.css';
 
 
+
 axios.defaults.baseURL = 'http://localhost:8080';
 const Register = () => {
   const navigate = useNavigate();
+  const { setOtpFromRedirect } = useAuth();
 
   const [file, setFile] = useState();
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
 
   const formik = useFormik({
     initialValues: {
@@ -36,7 +39,8 @@ const Register = () => {
           toast.success('OTP Sent Successfully', {
             duration: 4000,
             position: 'top-center',
-          })
+          });
+          setOtpFromRedirect('isRegister');
           navigate('/otp');
         } else {
           toast.error(response.data.message, { // Display error message from the server
