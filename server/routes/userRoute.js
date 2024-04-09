@@ -11,13 +11,15 @@ const { protect, localVariables } = require("../middlewares/authMiddleware");
 
 // Extracting functions from the imported controller object
 const {
+  verifyRegister,
   registerController,
+  verifyLogin,
   loginController,
   allUsers,
   getUser,
   verifyUser,
   updateUser,
-  generateOTP,
+  sendOTP,
   verifyOTP,
   createResetSession,
   resetPassword
@@ -27,16 +29,16 @@ const {
 
 
 /**POST Methods */
-router.route('/register').post(registerController).get(protect,allUsers); //register user
+router.route('/register').post(verifyRegister,sendOTP).get(protect,allUsers); //register user
+router.route('/createUser').post(verifyOTP,registerController);
 router.route('/regsiterMail').post(); //send the email
-router.route('/authenticate').post((req,res) => res.end()); //authenticate user
+router.route('/authenticate').post(verifyLogin,sendOTP); //authenticate user
 router.route('/verifyusername').post(verifyUser);
-router.route('/login').post( loginController); //login to app
+router.route('/login').post(verifyOTP, loginController); //login to app
+router.route('/sendOTP').post(sendOTP); //send otp to mail
 
 /**GET Methods */
 router.route('/:username').get(getUser); //get user with username
-router.route('/generateOTP').get(verifyUser,localVariables,generateOTP); //genrate random OTP
-router.route('/verifyotp').get(verifyUser, verifyOTP); //verify generated OTP
 router.route('/createResetSession').get(createResetSession); //reset all the variables
 
 /**PUT Methods */

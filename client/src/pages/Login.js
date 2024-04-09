@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import avatar from '../assets/profile.png';
@@ -6,6 +6,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import { useFormik } from 'formik';
 import { usernameValidate } from '../helper/validate';
 import { useAuthStore } from '../store/store';
+import { useAuth } from '../Context/AuthContext';
 
 import styles from '../css/Username.module.css';
 
@@ -14,6 +15,7 @@ axios.defaults.baseURL = 'http://localhost:8080';
 const Login = () => {
   const navigate = useNavigate();
   const setUsername = useAuthStore(state => state.setUsername);
+  const {isLoggedIn} = useAuth();
 
   const formik = useFormik({
     initialValues: {
@@ -38,7 +40,14 @@ const Login = () => {
         });
       }
     }
-  })
+  });
+
+    //prevent for login user 
+    useEffect(() => {
+      if (isLoggedIn) {
+        navigate("/chats");
+      }
+    }, [navigate,isLoggedIn]);
   return (
     <div className="container mx-auto">
       <Toaster position="top-center" reverseOrder={false}></Toaster>

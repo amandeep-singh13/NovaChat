@@ -31,7 +31,10 @@ import ProfileModal from "./ProfileModal";
 import ChatLoading from "../ChatLoading";
 import { getSender } from "../../config/ChatLogics";
 import { ThemeContext } from "../../Context/ThemeContext"; // Import the ThemeContext
+import { useAuth } from "../../Context/AuthContext";
+
 const SideDrawer = () => {
+  const { logout } = useAuth();
   const [search, setSearch] = useState("");
   const [searchResult, setsearchResult] = useState([]);
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -52,6 +55,7 @@ const SideDrawer = () => {
 
   const logoutHandler=()=>{
     localStorage.removeItem("userInfo");
+    logout();
     setUser(null);
     navigate("/");
   }
@@ -237,7 +241,7 @@ const SideDrawer = () => {
               </div>
               <BellIcon fontSize="2x1" m={1} />
             </MenuButton>
-            <MenuList pl={2}>
+            <MenuList pl={2} className={ `rounded-md p-1 ${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-gray-300 text-black'}`}>
               {!notification.length && "No New Messages"}
               {notification.map((notif) => (
                 <MenuItem

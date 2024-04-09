@@ -1,7 +1,10 @@
 const userModel = require('../models/userModel');
 const asyncHandler = require("express-async-handler");
 const generateToken = require('../config/generateToken');
-const otpGenerator = require('otp-generator');
+
+const generateOTP = require('../utils/generateOTP');
+const sendEmail = require('../utils/sendEmail');
+
 /** POST: http://localhost:8080/api/user/register 
  * @param : {
   "username" : "example123",
@@ -60,24 +63,29 @@ const otpGenerator = require('otp-generator');
 }
 */
 //register api handler
-const registerController = asyncHandler(async (req, res) => {
+const verifyRegister = asyncHandler(async (req, res, next) => {
     const { username, email, password, profile } = req.body;
     console.log("register");
     if (!username || !email || !password) {
-        res.status(400);
-        console.log("no input recieved");
-        throw new Error("Please enter all the feilds");
+        return res.status(400).json({ success: false, message: 'Please enter all fields' });
     }
     const usernameExists = await userModel.findOne({ username });
     const emailExists = await userModel.findOne({ email });
     if (usernameExists) {
-        res.status(400);
-        throw new Error("Username already exists");
+        return res.status(400).json({ success: false, message: 'Username already exists' });
     }
     if (emailExists) {
-        res.status(400);
-        throw new Error("Email already exists");
+        return res.status(400).json({ success: false, message: 'Email already exists' });
     }
+    req.app.locals = {username, email, password, profile, isVerified: true};
+    next();
+});
+
+//actual Registration done here, database entry
+const registerController = asyncHandler(async(req,res) =>{
+    const { username, password, email, profile} = req.app.locals;
+    //create user in database if otp is correct
+    
     const user = await userModel.create({
         username,
         email,
@@ -87,9 +95,7 @@ const registerController = asyncHandler(async (req, res) => {
 
 
     if (user) {
-        // user.save()
-        // .then(result => res.status(201).send({ msg: "User Register Successfully" }))
-        // .catch(error => res.status(500).send({ error }))
+        req.app.locals = {};
         res.status(201).json({
             _id: user._id,
             password: user.password,
@@ -100,10 +106,10 @@ const registerController = asyncHandler(async (req, res) => {
         })
     }
     else {
-        res.status(400);
-        throw new Error("failed to create the user");
+        res.status(400).json({ success: false, message: 'Failed to create user' });
     }
 });
+
 
 /** middleware for verify user */
 const verifyUser = asyncHandler(async (req, res, next) => {
@@ -112,17 +118,17 @@ const verifyUser = asyncHandler(async (req, res, next) => {
         // Check the user existence
         let exist = await userModel.findOne({ username });
         if (!exist) {
-            return res.status(404).send({error : "Username not found"});
+            return res.status(404).send({ error: "Username not found" });
         }
-        if(req.method === "GET"){
+        if (req.method === "GET") {
             next();
         }
-        else{
+        else {
             res.status(201);
             res.json({
-            usernameverified: true,
-            username: exist.username
-        });
+                usernameverified: true,
+                username: exist.username
+            });
         }
     } catch (error) {
         res.status(404);
@@ -133,28 +139,41 @@ const verifyUser = asyncHandler(async (req, res, next) => {
 
 
 //login api handling
-const loginController = asyncHandler(async (req, res) => {
+const verifyLogin = asyncHandler(async (req, res, next) => {
     const { username, password } = req.body;
     const user = await userModel.findOne({ username });
     if (!user) {
-        res.status(401);
-        throw new Error("Username not found");
+        return res.status(401).json({ success: false, message: 'Username Not Found' });
     }
     else if (user && (await user.matchPassword(password))) {
-        res.json({
-            _id: user._id,
-            password: user.password,
-            username: user.username,
-            email: user.email,
-            profile: user.profile,
-            token: generateToken(user._id),
-        });
+        email = user.email;
+        req.app.locals = {user, email, isVerified: true};
+        next();
+        
     }
     else {
-        res.status(401);
-        throw new Error("Invalid password");
+        return res.status(401).json({ success: false, message: 'Invalid Password' });
     }
 });
+
+//loginUser in frontend after verifying 
+const loginController = asyncHandler(async (req,res) => {
+    if(req.app.locals.isVerified && req.app.locals.verifiedOTP){
+        const user = req.app.locals.user;
+        if(user){
+            req.app.locals = {};
+            return res.json({
+                _id: user._id,
+                username: user.username,
+                email: user.email,
+                profile: user.profile,
+                token: generateToken(user._id),
+            });
+        }
+    }
+    return res.status(401).json({ success: false, message: 'Verification Not Done' });
+});
+
 
 //user search api/user/register?search=aradhya
 const allUsers = asyncHandler(async (req, res) => {
@@ -196,61 +215,80 @@ async function updateUser(req, res) {
     res.json('updateUser route');
 }
 
-/** GET: http://localhost:8080/api/generateOTP */
-async function generateOTP(req,res){
-    try {
-        const generatedOTP = await otpGenerator.generate(6, { lowerCaseAlphabets: false, upperCaseAlphabets: false, specialChars: false });
-        if (!generatedOTP) {
-          res.status(500).send({ error: "Failed to generate OTP" });
-        } else {
-          req.app.locals.OTP = generatedOTP;
-          res.status(201).send({ code: req.app.locals.OTP });
-        }
-      } catch (error) {
-        console.error("Error generating OTP:", error);
-        res.status(500).send({ error: "Internal Server Error" });
-      }
-}
-
-/** GET: http://localhost:8080/api/verifyOTP */
-const verifyOTP = asyncHandler(async(req, res) => {
-    const { code } = req.query;
-    if(parseInt(req.app.locals.OTP) === parseInt(code)){
-        req.app.locals.OTP = null; // reset the OTP value
-        req.app.locals.resetSession = true; // start session for reset password
-        return res.status(201).send({ msg: 'Verify Successsfully!'})
+/** POST: http://localhost:8080/api/user/sendOTP */
+// Controller function to send OTP
+const sendOTP =asyncHandler(async(req, res) => {
+    const { email, isVerified } = req.app.locals;
+    if(isVerified !== true){
+        res.status(400).json({ success: false, message: 'Verify Details First' });
     }
-    return res.status(400).send({ error: "Invalid OTP"});
+    if(!email){
+        res.status(400).json({ success: false, message: 'Email Address Not Known' });
+    }
+    const otp = generateOTP();
+
+    if (!otp) {
+        return res.status(500).json({ success: false, message: 'Failed to generate OTP' });
+    }
+
+    const emailSent = await sendEmail(email, otp);
+
+
+    if (emailSent) {
+        req.app.locals.otp = otp;
+        res.status(200).json({ success: true, message: 'OTP sent successfully', otp });
+    } else {
+        res.status(500).json({ success: false, message: 'Failed to send OTP' });
+    }
+});
+
+
+/** POST: http://localhost:8080/api/user/verifyOTP */
+const verifyOTP = asyncHandler(async (req, res, next) => {
+    const { otp } = req.body;
+    console.log("enteredOTP", otp);
+    const sentotp  =req.app.locals.otp;
+    console.log("sentotp", sentotp);
+    if(!sentotp){
+        return res.status(400).json({ success: false, message: 'Request to Send OTP First!' });
+    }
+    if (otp !== sentotp) {
+        return res.status(400).json({ success: false, message: 'Incorrect OTP' });
+    }
+    req.app.locals.verifiedOTP = true;
+    next();
 });
 
 // successfully redirect user when OTP is valid
 /** GET: http://localhost:8080/api/createResetSession */
-async function createResetSession(req,res){
-    if(req.app.locals.resetSession){
-         return res.status(201).send({ flag : req.app.locals.resetSession})
+async function createResetSession(req, res) {
+    if (req.app.locals.resetSession) {
+        return res.status(201).send({ flag: req.app.locals.resetSession })
     }
-    return res.status(440).send({error : "Session expired!"})
- }
- 
+    return res.status(440).send({ error: "Session expired!" })
+}
+
 
 // update the password when we have a valid session
 /** PUT: http://localhost:8080/api/resetPassword */
 async function resetPassword(req, res) {
     // Your implementation here
 }
-const getUser = asyncHandler(async(req, res) => {
-    
+const getUser = asyncHandler(async (req, res) => {
+
 });
 
 
 module.exports = {
+    verifyRegister,
     registerController,
+    verifyLogin,
     loginController,
     allUsers,
     getUser,
     verifyUser,
     updateUser,
-    generateOTP,
+    sendOTP,
     verifyOTP,
     createResetSession,
     resetPassword

@@ -4,18 +4,21 @@ import avatar from '../assets/profile.png';
 import toast, { Toaster } from 'react-hot-toast';
 import { useFormik } from 'formik';
 import { registerValidate } from '../helper/validate';
-import { registerUser } from '../helper/helper';
+
+import { useAuth } from '../Context/AuthContext';
 import convertToBase64 from '../helper/convert';
 import axios from 'axios';
 import styles from '../css/Username.module.css';
 
 
+
 axios.defaults.baseURL = 'http://localhost:8080';
 const Register = () => {
   const navigate = useNavigate();
+  const { setOtpFromRedirect } = useAuth();
 
   const [file, setFile] = useState();
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
 
   const formik = useFormik({
     initialValues: {
@@ -28,19 +31,27 @@ const Register = () => {
     validateOnChange: false,
     onSubmit: async (values) => {
       values = await Object.assign(values, { profile: file || '' });
-      console.log(typeof(file));
+      console.log(typeof (file));
       console.log(values);
       try {
-        console.log('Form values:', values);
-        await axios.post('/api/user/register', values);
-        toast.success('Register Successfully', {
-          duration: 4000,
-          position: 'top-center',
-        })
-        navigate('/login');
+        const response = await axios.post('/api/user/register', values);
+        if (response.data.success) {
+          toast.success('OTP Sent Successfully', {
+            duration: 4000,
+            position: 'top-center',
+          });
+          setOtpFromRedirect('isRegister');
+          navigate('/otp');
+        } else {
+          toast.error(response.data.message, { // Display error message from the server
+            duration: 4000,
+            position: 'top-center',
+          });
+        }
+
       } catch (error) {
         console.error('Registration error:', error);
-        toast.error('Username Exists or Invalid Data', {
+        toast.error( error.response.data.message, { // Display generic error message for network or other issues
           duration: 4000,
           position: 'top-center',
         });

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import avatar from '../assets/profile.png';
 import toast, { Toaster } from 'react-hot-toast';
@@ -6,6 +6,7 @@ import axios from 'axios';
 import { useFormik } from 'formik';
 import { passwordValidate } from '../helper/validate';
 import { useAuthStore } from '../store/store';
+import { useAuth } from '../Context/AuthContext'
 
 import styles from '../css/Username.module.css';
 
@@ -14,6 +15,9 @@ const Password = () => {
 
   const navigate = useNavigate();
   const { username } = useAuthStore(state => state.auth);
+  const { isLoggedIn, setOtpFromRedirect } = useAuth();
+
+
   const formik = useFormik({
     initialValues: {
       password: ''
@@ -26,25 +30,44 @@ const Password = () => {
         if (username) {
           const password = values.password;
           console.log(password);
-          const { data } = await axios.post('/api/user/login', { username, password });
-          toast.success('Login Successfully', {
-            duration: 4000,
-            position: 'top-center',
-          });
-          console.log(data);
-          localStorage.setItem("userInfo", JSON.stringify(data));
-          navigate('/chats');
+          const response = await axios.post('/api/user/authenticate', { username, password });
+          if(response.data.success){
+            toast.success('OTP Sent Successfully', {
+              duration: 4000,
+              position: 'top-center',
+            });
+
+          }
+          else {
+            toast.error(response.data.message, { // Display error message from the server
+              duration: 4000,
+              position: 'top-center',
+            });
+          }
+          setOtpFromRedirect('isLogin');
+          
+          navigate('/otp');
         }
       } catch (error) {
-        console.log(error);
-        toast.error('Password not Match', {
+        console.error('Registration error:', error);
+        toast.error( error.response.data.message, { // Display generic error message for network or other issues
           duration: 4000,
           position: 'top-center',
         });
       }
 
     }
-  })
+  });
+
+  //prevent for login user or whose username is not verified
+  useEffect(() => {
+    if (isLoggedIn) {
+      navigate("/chats");
+    }
+    if(!username){
+      navigate("/login");
+    }  
+  }, [navigate,isLoggedIn,username]);
   return (
     <div className="container mx-auto">
       <Toaster position="top-center" reverseOrder={false}></Toaster>
