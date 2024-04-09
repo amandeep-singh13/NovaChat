@@ -2,6 +2,23 @@ const asyncHandler = require("express-async-handler");
 const chat = require("../models/chatModel");
 const userModel = require("../models/userModel");
 
+const Message = require("../models/MessageModel");
+ const clearChat = asyncHandler(async (req, res) => {
+   const { chatId } = req.params;
+   console.log(chatId);
+
+  try {
+
+    // Delete all messages associated with the chat
+    await Message.deleteMany({ chat: chatId });
+
+    // Optionally, update the chat document to reflect that it's now empty
+
+    res.status(200).json({ message: 'Chat cleared successfully' });   } catch (error) {
+    res.status(500).json({ message: 'Failed to clear chat', error: error.message });
+  }
+ });
+
 //accessChat api handler(one on one chat between user logged in and userid provided)
 const accessChat = asyncHandler(async (req,res)=>{
     const {userId} = req.body;
@@ -171,4 +188,4 @@ const removeFromGroup = asyncHandler(async (req, res) => {
   
 
 
-module.exports = {accessChat,fetchChats,createGroupChat,renameGroup,removeFromGroup,addToGroup};
+module.exports = {accessChat,fetchChats,createGroupChat,renameGroup,removeFromGroup,addToGroup,clearChat};

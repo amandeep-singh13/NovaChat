@@ -4,7 +4,7 @@ import { Text, Box } from "@chakra-ui/layout";
 import { FormControl } from "@chakra-ui/form-control";
 import EmojiPicker from "emoji-picker-react"; // Import EmojiPicker component
 import { Input } from "@chakra-ui/input";
-import { IconButton, Spinner, useToast } from "@chakra-ui/react";
+import { IconButton, Spinner, useToast,Button } from "@chakra-ui/react";
 import { getSender, getSenderFull } from "../config/ChatLogics";
 import ProfileModal from "./miscellaneous/ProfileModal";
 import axios from "axios";
@@ -32,6 +32,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const [newMessage, setNewMessage] = useState("");
   const { theme } = useContext(ThemeContext);
   const toast = useToast();
+  
   const defaultOptions = {
     loop: true,
     autoplay: true,
@@ -93,6 +94,27 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       );
     });
   }, []);
+
+  // Inside the clearChat function
+const clearChat = async () => {
+  setLoading(true);
+  try {
+      const config = {
+          headers: {
+              Authorization: `Bearer ${user.token}`,
+          },
+      };
+      await axios.delete(`/api/chat/clearChat/${selectedChat._id}`, config);
+      // Emit a Socket.IO event to notify the server that the chat is cleared
+      socket.emit("clear chat", selectedChat._id);
+      console.log("Chat cleared successfully");
+  } catch (error) {
+      console.error("Error clearing chat:", error);
+  }
+  setLoading(false);
+};
+
+
 
   const handleSend = () => {
     if (newMessage.trim() !== "") {
@@ -308,6 +330,15 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             borderRadius="lg"
             // overflowY="hidden"
           >
+            <Button
+            onClick={clearChat}
+            colorScheme="red"
+            alignSelf="flex-end"
+            mr={3}
+            mb={3}
+          >
+            Clear Chat
+          </Button>
             {loading ? (
               <Spinner
                 size="xl"
