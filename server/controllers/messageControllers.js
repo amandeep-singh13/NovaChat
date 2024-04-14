@@ -65,27 +65,104 @@ const allMessages=asyncHandler(async(req, res)=>{
 });
 
 // Add functions for handling reactions
-const addReaction = asyncHandler(async (req, res) => {
-    const { messageId, reactionType } = req.body;
-    console.log(req.body);
-    console.log(req.user._id)
-    try{
-    console.log("try")
-    const reaction = await Reactions.create({ userId: req.user._id, messageId, reactionType });
-    await Message.findByIdAndUpdate(messageId, { $push: { reactions: reaction._id } });
-    res.json(reaction);
-    } catch(error){
-        res.status(500).json({ error: "Internal server error"});
+// const addReaction = asyncHandler(async (req, res) => {
+//     const { messageId, reactionType } = req.body;
+//     console.log(req.body);
+//     console.log(req.user._id)
+//     try{
+//     console.log("try")
+//     const reaction = await Reactions.create({ userId: req.user._id, messageId, reactionType });
+//     await Message.findByIdAndUpdate(messageId, { $push: { reactions: reaction._id } });
+//     res.json(reaction);
+//     } catch(error){
+//         res.status(500).json({ error: "Internal server error"});
+//     }
+// });
+
+//api for liking a message
+const likePost = async (req, res) => {
+    try {
+        const messageId = req.body.messageId;
+        const userId = req.user._id;
+        console.log(messageId, userId);
+  
+        await Message.findByIdAndUpdate(messageId, {
+            $push: { likes: userId }
+        }, {
+            new: true
+        });
+  
+        res.json({ msg: "Liked successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: 'Server error' });
     }
-});
+};
+//api for disliking a message
 
- const getMessageWithReactions = asyncHandler(async (req, res) => {
-     const messageId = req.params.id;
-     const message = await Message.findById(messageId).populate('reactions');
-    res.json(message);
- });
+const dislikePost = async (req, res) => {
+    try {
+        const messageId = req.body.messageId;
+        const userId = req.user._id;
+        console.log(messageId, userId);
+  
+        await Message.findByIdAndUpdate(messageId, {
+            $pull: { likes: userId }
+        }, {
+            new: true
+        });
+  
+        res.json({ msg: "Disliked successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: 'Server error' });
+    }
+  };
+  const heart = async (req, res) => {
+    try {
+        const messageId = req.body.messageId;
+        const userId = req.user._id;
+        console.log(messageId, userId);
+  
+        await Message.findByIdAndUpdate(messageId, {
+            $push: { heart: userId }
+        }, {
+            new: true
+        });
+  
+        res.json({ msg: "Hearted successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: 'Server error' });
+    }
+  };
+  const disheart = async (req, res) => {
+    try {
+        const messageId = req.body.messageId;
+        const userId = req.user?._id;
+        console.log(messageId, userId);
+  
+        await Message.findByIdAndUpdate(messageId, {
+            $pull: { heart: userId }
+        }, {
+            new: true
+        });
+  
+        res.json({ msg: "Disliked successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: 'Server error' });
+    }
+  };
+
+
+//  const getMessageWithReactions = asyncHandler(async (req, res) => {
+//      const messageId = req.params.id;
+//      const message = await Message.findById(messageId).populate('reactions');
+//     res.json(message);
+//  });
 
 
 
 
-module.exports={sendMessage, allMessages,deleteMessage,addReaction,getMessageWithReactions};
+module.exports={sendMessage, allMessages,deleteMessage,likePost,dislikePost,heart,disheart};
