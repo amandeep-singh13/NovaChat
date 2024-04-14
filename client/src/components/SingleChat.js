@@ -31,6 +31,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const [istyping, setIsTyping] = useState(false);
   const [newMessage, setNewMessage] = useState("");
   const { theme } = useContext(ThemeContext);
+  const {refresh,setRefresh} = useState(false);
   const toast = useToast();
 
   const defaultOptions = {
