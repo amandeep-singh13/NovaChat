@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Tooltip, Avatar } from "@chakra-ui/react";
+import { Tooltip, Avatar, IconButton } from "@chakra-ui/react";
 import ScrollableFeed from "react-scrollable-feed";
 import {
   isLastMessage,
@@ -10,10 +10,24 @@ import {
 import { ChatState } from "../Context/ChatProvider";
 import { ThemeContext } from "../Context/ThemeContext";
 import { MdDelete } from "react-icons/md";
-import { IconButton } from "@chakra-ui/react";
-import { RiThumbUpLine, RiThumbDownLine, RiHeartLine } from "react-icons/ri";
+// import {
+//   RiThumbUpLine,
+//   RiThumbDownLine,
+//   RiHeartLine,
+// } from "react-icons/ri";
+import { FaRegThumbsUp } from "react-icons/fa";
+import { FaThumbsUp } from "react-icons/fa";
+import { CiHeart } from "react-icons/ci";
+import { FaHeart } from "react-icons/fa";
 
-const ScrollableChat = ({ messages, handleDelete, handleReact }) => {
+const ScrollableChat = ({
+  messages,
+  handleDelete,
+  likePost,
+  dislikePost,
+  heartPost,
+  disHeartPost,
+}) => {
   const { user } = ChatState();
   const { theme } = useContext(ThemeContext);
 
@@ -64,45 +78,68 @@ const ScrollableChat = ({ messages, handleDelete, handleReact }) => {
               )}
               <div style={{ display: "flex", marginTop: "5px" }}>
                 <IconButton
-                  icon={<RiThumbUpLine style={{ color: "blue" }} />}
-                  aria-label="Like"
-                  onClick={() => handleReact(m._id, "like")} // handleReact function to be implemented
-                  variant={
-                    m.reactions &&
-                    m.reactions.some(
-                      (r) => r.reactionType === "like" && r.userId === user._id
+                  icon={
+                    m.likes.includes(user._id) ? (
+                      <FaThumbsUp style={{ color: "blue" }} />
+                    ) : (
+                      <FaRegThumbsUp />
                     )
-                      ? "solid"
-                      : "outline"
                   }
+                  aria-label="Like"
+                  onClick={() =>
+                    m.likes.includes(user._id)
+                      ? dislikePost(m._id)
+                      : likePost(m._id)
+                  }
+                  variant="solid"
                 />
-                <IconButton
+                <IconButton className="ml-1"
+                  icon={
+                    m.heart.includes(user._id) ? (
+                      <FaHeart style={{ color: "red" }} />
+                    ) : (
+                      < CiHeart />
+                    )
+                  }
+                  aria-label="Heart"
+                  onClick={() =>
+                    m.heart.includes(user._id)
+                      ? disHeartPost(m._id)
+                      : heartPost(m._id)
+                  }
+                  variant="solid"
+                />
+
+                {/* <IconButton
                   icon={<RiThumbDownLine style={{ color: "red" }} />}
                   aria-label="Dislike"
-                  onClick={() => handleReact(m._id, "dislike")} // handleReact function to be implemented
+                  onClick={() => dislikePost(m._id)} // Call dislikePost function with message ID
                   variant={
-                    m.reactions &&
-                    m.reactions.some(
-                      (r) =>
-                        r.reactionType === "dislike" && r.userId === user._id
-                    )
+                    m.dislikes && m.dislikes.includes(user._id)
+                      ? "solid"
+                      : "outline"
+                  }
+                /> */}
+                {/* <IconButton
+                  icon={<RiHeartLine style={{ color: "#ff1493" }} />}
+                  aria-label="Heart"
+                  onClick={() => heartPost(m._id)} // Call heartPost function with message ID
+                  variant={
+                    m.hearts && m.hearts.includes(user._id)
                       ? "solid"
                       : "outline"
                   }
                 />
                 <IconButton
-                  icon={<RiHeartLine style={{ color: "#ff1493" }} />}
-                  aria-label="Heart"
-                  onClick={() => handleReact(m._id, "heart")} // handleReact function to be implemented
+                  icon={<RiHeartLine style={{ color: "#ff1493" }} />} // Assuming disheart uses the same icon
+                  aria-label="Disheart"
+                  onClick={() => disHeartPost(m._id)} // Call disHeartPost function with message ID
                   variant={
-                    m.reactions &&
-                    m.reactions.some(
-                      (r) => r.reactionType === "heart" && r.userId === user._id
-                    )
+                    m.dishearts && m.dishearts.includes(user._id)
                       ? "solid"
                       : "outline"
                   }
-                />
+                /> */}
               </div>
             </span>
           </div>

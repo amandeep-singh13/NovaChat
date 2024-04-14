@@ -4,7 +4,7 @@ import { Text, Box } from "@chakra-ui/layout";
 import { FormControl } from "@chakra-ui/form-control";
 import EmojiPicker from "emoji-picker-react"; // Import EmojiPicker component
 import { Input } from "@chakra-ui/input";
-import { IconButton, Spinner, useToast,Button } from "@chakra-ui/react";
+import { IconButton, Spinner, useToast, Button } from "@chakra-ui/react";
 import { getSender, getSenderFull } from "../config/ChatLogics";
 import ProfileModal from "./miscellaneous/ProfileModal";
 import axios from "axios";
@@ -32,7 +32,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const [newMessage, setNewMessage] = useState("");
   const { theme } = useContext(ThemeContext);
   const toast = useToast();
-  
+
   const defaultOptions = {
     loop: true,
     autoplay: true,
@@ -74,7 +74,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           setFetchAgain(!fetchAgain);
         }
       } else {
-        const hasReactions = newMessageRecieved.reactions &&
+        const hasReactions =
+          newMessageRecieved.reactions &&
           newMessageRecieved.reactions.length > 0;
         // If the new message contains reactions, handle adding them
         if (hasReactions) {
@@ -96,25 +97,23 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   }, []);
 
   // Inside the clearChat function
-const clearChat = async () => {
-  setLoading(true);
-  try {
+  const clearChat = async () => {
+    setLoading(true);
+    try {
       const config = {
-          headers: {
-              Authorization: `Bearer ${user.token}`,
-          },
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
       };
       await axios.delete(`/api/chat/clearChat/${selectedChat._id}`, config);
       // Emit a Socket.IO event to notify the server that the chat is cleared
       socket.emit("clear chat", selectedChat._id);
       console.log("Chat cleared successfully");
-  } catch (error) {
+    } catch (error) {
       console.error("Error clearing chat:", error);
-  }
-  setLoading(false);
-};
-
-
+    }
+    setLoading(false);
+  };
 
   const handleSend = () => {
     if (newMessage.trim() !== "") {
@@ -189,36 +188,39 @@ const clearChat = async () => {
     const { messageId, reactionType } = data;
     const updatedMessages = messages.map((message) => {
       if (message._id === messageId) {
-        return { ...message, reactions: [...message.reactions, { reactionType }] };
+        return {
+          ...message,
+          reactions: [...message.reactions, { reactionType }],
+        };
       }
       return message;
     });
     setMessages(updatedMessages);
   };
 
-  const handleReact = async (messageId, reactionType) => {
-    try {
-      const config = {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      };
-      console.log("reaction before post")
-      // Make a POST request to add reaction
-      await axios.post("/api/message/reaction", { messageId, reactionType }, config);
-      // Emit the 'add reaction' event to the server
-      socket.emit("add reaction", { messageId, reactionType });
-    } catch (error) {
-      console.error("Error on reacting message:", error);
-      toast({
-        title: "Error",
-        description: "Failed to react on message",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-    }
-  };
+  // const handleReact = async (messageId, reactionType) => {
+  //   try {
+  //     const config = {
+  //       headers: {
+  //         Authorization: `Bearer ${user.token}`,
+  //       },
+  //     };
+  //     console.log("reaction before post")
+  //     // Make a POST request to add reaction
+  //     await axios.post("/api/message/reaction", { messageId, reactionType }, config);
+  //     // Emit the 'add reaction' event to the server
+  //     socket.emit("add reaction", { messageId, reactionType });
+  //   } catch (error) {
+  //     console.error("Error on reacting message:", error);
+  //     toast({
+  //       title: "Error",
+  //       description: "Failed to react on message",
+  //       status: "error",
+  //       duration: 5000,
+  //       isClosable: true,
+  //     });
+  //   }
+  // };
   const typingHandler = (e) => {
     setNewMessage(e.target.value);
 
@@ -279,6 +281,101 @@ const clearChat = async () => {
       setNewMessage((prevMessage) => prevMessage + emoji);
     }
   };
+
+  const likePost = (id) => {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+    };
+    const url = "http://localhost:8080/api/message/like-post";
+    const data = { messageId: id };
+    const headers = config.headers;
+    axios({
+      method: "put",
+      url: url,
+      data: data,
+      headers: headers,
+    })
+      .then((res) => {
+        console.log("liked");
+        setRefresh(!refresh);
+      })
+      .catch((err) => {
+        console.log("server err", err);
+      });
+  };
+  const dislikePost = (id) => {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+    };
+    const url = "http://localhost:8080/api/message/dislike-post";
+    const data = { messageId: id };
+    const headers = config.headers;
+    axios({
+      method: "put",
+      url: url,
+      data: data,
+      headers: headers,
+    })
+      .then((res) => {
+        console.log("liked");
+        setRefresh(!refresh);
+      })
+      .catch((err) => {
+        console.log("server err", err);
+      });
+  };
+
+  const heartPost = (id) => {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+    };
+    const url = "http://localhost:8080/api/message/heart-post";
+    const data = { messageId: id };
+    const headers = config.headers;
+    axios({
+      method: "put",
+      url: url,
+      data: data,
+      headers: headers,
+    })
+      .then((res) => {
+        console.log("liked");
+        setRefresh(!refresh);
+      })
+      .catch((err) => {
+        console.log("server err", err);
+      });
+  };
+  const disHeartPost = (id) => {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+    };
+    const url = "http://localhost:8080/api/message/unheart-post";
+    const data = { messageId: id };
+    const headers = config.headers;
+    axios({
+      method: "put",
+      url: url,
+      data: data,
+      headers: headers,
+    })
+      .then((res) => {
+        console.log("liked");
+        setRefresh(!refresh);
+      })
+      .catch((err) => {
+        console.log("server err", err);
+      });
+  };
+
   return (
     <>
       {selectedChat ? (
@@ -331,14 +428,14 @@ const clearChat = async () => {
             // overflowY="hidden"
           >
             <Button
-            onClick={clearChat}
-            colorScheme="red"
-            alignSelf="flex-end"
-            mr={3}
-            mb={3}
-          >
-            Clear Chat
-          </Button>
+              onClick={clearChat}
+              colorScheme="red"
+              alignSelf="flex-end"
+              mr={3}
+              mb={3}
+            >
+              Clear Chat
+            </Button>
             {loading ? (
               <Spinner
                 size="xl"
@@ -355,7 +452,10 @@ const clearChat = async () => {
                 <ScrollableChat
                   messages={messages}
                   handleDelete={handleDelete}
-                  handleReact={handleReact}
+                  likePost={likePost}
+                  dislikePost={dislikePost}
+                  heartPost={heartPost}
+                  disHeartPost={disHeartPost}
                 />
               </div>
             )}
