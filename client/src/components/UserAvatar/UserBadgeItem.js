@@ -4,7 +4,7 @@ import React from "react";
 const UserBadgeItem = ({ user, handleFunction}) => {
   return (
     <Box display="flex-row" gap={4}
-      className="rounded-md"
+      className="rounded-md bg-gray-900"
       px={3}
       py={1}
       borderRadius="lg"
@@ -12,7 +12,6 @@ const UserBadgeItem = ({ user, handleFunction}) => {
       mb={2}
       variant="solid"
       fontSize={12}
-      backgroundColor="purple"
       color="white"
       cursor="pointer"
       onClick={handleFunction}

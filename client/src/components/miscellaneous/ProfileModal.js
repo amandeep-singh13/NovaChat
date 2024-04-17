@@ -29,10 +29,15 @@ const ProfileModal = ({ user, children }) => {
       <Modal className="ml-20"size="lg" onClose={onClose} isOpen={isOpen} isCentered>
         <ModalOverlay />
         <ModalContent
-        className={`rounded-xl px-5 ${
-          theme === "dark" ? "bg-black text-white" : "bg-pink-200"
-        }`}
-         width="30%"  h="290px" flexDir={"column"}>
+          className={`rounded-xl px-5 ${
+            theme === "dark" ? "bg-black text-white" : "bg-green-400"
+          }`}
+          width="30%"
+          flexDir="column"
+          justifyContent="center" // Align content vertically in the center
+          alignItems="center" // Align content horizontally in the center
+          marginLeft="35%" marginTop="15%"
+        >
           <ModalHeader
             className="font-semibold"
             fontSize="20px"
